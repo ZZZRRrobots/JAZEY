@@ -154,6 +154,7 @@
       </aside>
     </section>
 
+    <!-- TEAM SECTION (updated with Eyad) -->
     <section id="team" class="team">
       <div class="member panel">
         <h3>Zein Mohammed</h3>
@@ -174,6 +175,13 @@
         <p class="muted">Hardware & testing</p>
         <div class="contact">Mail: <a href="mailto:yousseframy332334@gmail.com">yousseframy332334@gmail.com</a><br>Phone: <a href="tel:+201154332334">01154332334</a></div>
         <a class="btn" href="mailto:yousseframy332334@gmail.com">Email Youssef</a>
+      </div>
+
+      <div class="member panel">
+        <h3>Eyad Tammer</h3>
+        <p class="muted">Developer & design</p>
+        <div class="contact">Mail: <a href="mailto:eyadtamer100200@gmail.com">eyadtamer100200@gmail.com</a><br>Phone: <a href="tel:+201080081787">01080081787</a></div>
+        <a class="btn" href="mailto:eyadtamer100200@gmail.com">Email Eyad</a>
       </div>
     </section>
 
@@ -204,10 +212,11 @@
         <a class="btn" href="mailto:zeinfahmy2030@gmail.com">Email Zein</a>
         <a class="btn" href="mailto:adamalbashier2009@gmail.com">Email Adam</a>
         <a class="btn" href="mailto:yousseframy332334@gmail.com">Email Youssef</a>
+        <a class="btn" href="mailto:eyadtamer100200@gmail.com">Email Eyad</a>
       </div>
     </section>
 
-    <footer>© JAZEY — Built by Zein, Adam, & Youssef · Proud NASA Space Apps Participants</footer>
+    <footer>© JAZEY — Built by Zein, Adam, Youssef & Eyad · Proud NASA Space Apps Participants</footer>
   </div>
 
   <script>
@@ -267,22 +276,10 @@
       tEl.childNodes[0].nodeValue = txt.slice(0,ci);
       ci+=dir;
       if(ci>txt.length+8){dir=-1}
-      if(ci<0){dir=1;pi=(pi+1)%phrases.length;ci=0}
-      setTimeout(tick,90 + Math.random()*60);
+      else if(ci<0){dir=1;pi=(pi+1)%phrases.length}
+      setTimeout(tick,dir>0?80:40);
     }
-    // initialize text node
-    tEl.childNodes[0].nodeValue = '';
     tick();
-
-    /* --- Small interactive niceties --- */
-    document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click',e=>{
-        e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'});
-      })
-    });
-
-    /* --- subtle accessibility tweak: show focus outlines for keyboard users --- */
-    document.addEventListener('keydown',e=>{ if(e.key==='Tab') document.body.classList.add('kbd'); });
   </script>
 </body>
 </html>
