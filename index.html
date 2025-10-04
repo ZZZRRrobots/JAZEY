@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JAZEY — Team Site</title>
+  <style>
+    /* --- Reset & base --- */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:#030207; color:#dfe7ff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      overflow-x:hidden;
+    }
+
+    /* --- Canvas backgrounds --- */
+    #matrix{position:fixed;inset:0;z-index:0;mix-blend-mode:screen;pointer-events:none}
+    #particles{position:fixed;inset:0;z-index:0;opacity:.12;pointer-events:none}
+
+    /* --- Page layout --- */
+    .wrap{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:60px 24px 120px}
+    header{width:100%;max-width:1100px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-mark{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#0ff,#8ef);display:flex;align-items:center;justify-content:center;color:#020409;font-weight:800;font-size:20px;box-shadow:0 6px 30px rgba(0,255,200,.05);transform:skewX(-6deg)}
+    .brand{font-weight:700;font-size:18px;letter-spacing:1px}
+    .tag{font-size:12px;color:#9fb0ff;opacity:.9}
+
+    nav{display:flex;gap:14px}
+    .nav-link{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.02);backdrop-filter:blur(4px);font-size:13px;color:#bcd4ff;text-decoration:none;transition:all .22s}
+    .nav-link:hover{transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,.6)}
+
+    /* --- Hero --- */
+    .hero{width:100%;max-width:1100px;margin-top:36px;display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(120,160,255,0.06);padding:28px;border-radius:14px;box-shadow:0 10px 40px rgba(2,6,23,.6)}
+
+    .headline{font-size:34px;line-height:1.03;font-weight:800;background:linear-gradient(90deg,#8be4ff,#b1a7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .sub{margin-top:8px;color:#95a8ff;max-width:58%}
+
+    .typewriter{margin-top:16px;font-family:monospace;background:rgba(0,0,0,0.12);display:inline-block;padding:8px 12px;border-radius:8px;color:#bfe8ff}
+
+    /* --- Right card --- */
+    .card-right{display:flex;flex-direction:column;gap:12px}
+    .glow-box{padding:18px;border-radius:12px;background:linear-gradient(90deg,rgba(60,60,70,0.22),rgba(30,30,40,0.16));border:1px solid rgba(100,150,255,0.06)}
+    .project-title{font-weight:700;font-size:16px}
+    .project-desc{font-size:13px;color:#b7c7ff}
+
+    /* --- Team grid --- */
+    .team{width:100%;max-width:1100px;margin-top:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+    .member{padding:18px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.02));border:1px solid rgba(120,160,255,0.03);position:relative;overflow:hidden}
+    .member h3{font-size:16px;margin-bottom:6px}
+    .member p{font-size:13px;color:#9fb7ff}
+    .contact{margin-top:10px;font-size:13px}
+    .btn{display:inline-block;margin-top:10px;padding:8px 10px;border-radius:8px;background:linear-gradient(90deg,#06223820,#00121f20);border:1px solid rgba(120,160,255,0.08);color:#cfe9ff;text-decoration:none;font-size:13px}
+
+    /* --- Project section --- */
+    .project{width:100%;max-width:1100px;margin-top:36px;padding:18px;border-radius:12px}
+    .project h3{font-size:18px}
+    .project p{color:#b5c9ff}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+
+    /* --- Footer --- */
+    footer{margin-top:56px;color:#98b3ff;opacity:.9;font-size:13px}
+
+    /* --- Animations & effects --- */
+    .glitch{position:relative;display:inline-block}
+    .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;mix-blend-mode:screen;pointer-events:none}
+    .glitch::before{transform:translateX(-2px);color:#8acbff;opacity:.7}
+    .glitch::after{transform:translateX(2px);color:#b78bff;opacity:.6}
+
+    @media (max-width:880px){.hero{grid-template-columns:1fr;}.sub{max-width:100%}.logo-mark{width:48px;height:48px}}
+
+    /* subtle flicker */
+    @keyframes flicker{0%{opacity:1}50%{opacity:.85}100%{opacity:1}}
+    .flicker{animation:flicker 3s infinite}
+
+    /* hover neon */
+    .neon:hover{box-shadow:0 8px 36px rgba(110,160,255,.14);transform:translateY(-4px)}
+
+    /* matrix rain bullets fallback */
+    canvas{display:block}
+
+    /* small helper */
+    .muted{color:#9bb1ff;font-size:13px}
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <canvas id="matrix"></canvas>
+
+  <div class="wrap">
+    <header>
+      <div class="logo">
+        <div class="logo-mark">JZ</div>
+        <div>
+          <div class="brand">JAZEY</div>
+          <div class="tag">Hacker-space · NASA Space Apps team</div>
+        </div>
+      </div>
+      <nav>
+        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="#team">Team</a>
+        <a class="nav-link" href="#project">Project</a>
+        <a class="nav-link" href="#contact">Contact</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="panel">
+        <div class="headline glitch" data-text="JAZEY — We Hack the Stars">JAZEY — We Hack the Stars</div>
+        <div class="sub">A close-knit team of young devs from Egypt — we entered NASA Space Apps to challenge ourselves, learn systems, and build something that matters.</div>
+
+        <div class="typewriter" id="typewriter">Initializing...
+          <span id="cursor">▮</span>
+        </div>
+
+        <div style="margin-top:18px;display:flex;gap:10px;align-items:center">
+          <a class="btn neon" href="#project">Our Space Apps Project</a>
+          <a class="btn" href="#team">Meet the Team</a>
+        </div>
+
+        <div style="margin-top:18px;color:#8fb7ff;font-size:13px">Featured: NASA Space Apps 2025 - Local Alexandria Team Entry</div>
+      </div>
+
+      <aside class="card-right panel">
+        <div class="glow-box">
+          <div class="project-title">Our Mission</div>
+          <div class="project-desc">Design creative solutions for Earth & space challenges. We combine web & hardware curiosity with rapid prototyping to build demos that impress judges and teach us new skills.</div>
+        </div>
+
+        <div class="glow-box">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong class="muted">Status</strong>
+            <span class="muted">Prototype · Growing</span>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="nav-link" style="font-size:12px">React</span>
+            <span class="nav-link" style="font-size:12px">Python</span>
+            <span class="nav-link" style="font-size:12px">Arduino</span>
+            <span class="nav-link" style="font-size:12px">ML</span>
+          </div>
+        </div>
+
+        <div class="glow-box">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#041a2b,#07304a);display:flex;align-items:center;justify-content:center;font-weight:700">🚀</div>
+            <div>
+              <div style="font-weight:700">NASA Space Apps</div>
+              <div class="muted" style="margin-top:6px">Local Alexandria 2025 — team entry</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="team" class="team">
+      <div class="member panel">
+        <h3>Zein Mohammed</h3>
+        <p class="muted">Lead · Frontend & animations</p>
+        <div class="contact">Mail: <a href="mailto:zeinfahmy2030@gmail.com">zeinfahmy2030@gmail.com</a><br>Phone: <a href="tel:+201091286679">01091286679</a></div>
+        <a class="btn" href="mailto:zeinfahmy2030@gmail.com">Email Zein</a>
+      </div>
+
+      <div class="member panel">
+        <h3>Adam Amr</h3>
+        <p class="muted">Systems & backend</p>
+        <div class="contact">Mail: <a href="mailto:adamalbashier2009@gmail.com">adamalbashier2009@gmail.com</a><br>Phone: <a href="tel:+201129522236">01129522236</a></div>
+        <a class="btn" href="mailto:adamalbashier2009@gmail.com">Email Adam</a>
+      </div>
+
+      <div class="member panel">
+        <h3>Youssef Ramy</h3>
+        <p class="muted">Hardware & testing</p>
+        <div class="contact">Mail: <a href="mailto:yousseframy332334@gmail.com">yousseframy332334@gmail.com</a><br>Phone: <a href="tel:+201154332334">01154332334</a></div>
+        <a class="btn" href="mailto:yousseframy332334@gmail.com">Email Youssef</a>
+      </div>
+    </section>
+
+    <section id="project" class="project panel">
+      <h3>Our NASA Space Apps Project</h3>
+      <p>We entered the NASA Space Apps challenge to push our limits. Our prototype focuses on creative data visualization and a small hardware demonstrator that reads environmental inputs and maps them to an interactive web visualization — fast, visual, and useful for outreach.</p>
+
+      <div class="card-grid">
+        <div class="glow-box">
+          <strong>Prototype</strong>
+          <div class="muted" style="margin-top:8px">Web demo + small sensor board</div>
+        </div>
+        <div class="glow-box">
+          <strong>What we learned</strong>
+          <div class="muted" style="margin-top:8px">Rapid prototyping, teamwork, pitching to judges</div>
+        </div>
+        <div class="glow-box">
+          <strong>Next steps</strong>
+          <div class="muted" style="margin-top:8px">Polish UI, add ML analysis, and open-source the repo</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="panel" style="margin-top:28px;max-width:1100px">
+      <h3>Get in touch</h3>
+      <p class="muted">Want to collaborate, mentor, or give feedback? Contact any of us — we love talking about tech and space.</p>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" href="mailto:zeinfahmy2030@gmail.com">Email Zein</a>
+        <a class="btn" href="mailto:adamalbashier2009@gmail.com">Email Adam</a>
+        <a class="btn" href="mailto:yousseframy332334@gmail.com">Email Youssef</a>
+      </div>
+    </section>
+
+    <footer>© JAZEY — Built by Zein, Adam, & Youssef · Proud NASA Space Apps Participants</footer>
+  </div>
+
+  <script>
+    /* --- Matrix rain (canvas) --- */
+    const matrix = document.getElementById('matrix');
+    const mCtx = matrix.getContext('2d');
+    function resizeMatrix(){matrix.width = innerWidth; matrix.height = innerHeight}
+    resizeMatrix(); window.addEventListener('resize',resizeMatrix);
+    const cols = Math.floor(window.innerWidth/14);
+    const drops = Array(cols).fill(1);
+    function matrixLoop(){
+      mCtx.fillStyle = 'rgba(0,0,0,0)';
+      mCtx.fillRect(0,0,matrix.width,matrix.height);
+      mCtx.fillStyle = 'rgba(80,170,255,0.07)';
+      mCtx.font = '14px monospace';
+      for(let i=0;i<drops.length;i++){
+        const text = String.fromCharCode(33 + Math.random()*94);
+        mCtx.fillText(text,i*14,drops[i]*14);
+        if(drops[i]*14 > matrix.height && Math.random()>0.975) drops[i]=0;
+        drops[i]++;
+      }
+      requestAnimationFrame(matrixLoop);
+    }
+    matrixLoop();
+
+    /* --- Particles subtle orbit --- */
+    const particles = document.getElementById('particles');
+    const pCtx = particles.getContext('2d');
+    function resizeParticles(){particles.width=innerWidth;particles.height=innerHeight}
+    resizeParticles(); window.addEventListener('resize',resizeParticles);
+    const pts = [];
+    for(let i=0;i<80;i++){
+      pts.push({x:Math.random()*particles.width,y:Math.random()*particles.height,r:1+Math.random()*2,ang:Math.random()*Math.PI*2,spd:.0005+Math.random()*.003});
+    }
+    function drawParticles(t){
+      pCtx.clearRect(0,0,particles.width,particles.height);
+      for(const p of pts){
+        p.ang += p.spd*(t/16);
+        const cx = particles.width/2 + Math.cos(p.ang)* (150 + Math.sin(p.ang*0.5)*80);
+        const cy = particles.height/2 + Math.sin(p.ang)*(120 + Math.cos(p.ang*0.8)*80);
+        pCtx.beginPath(); pCtx.arc(cx,cy,p.r,0,Math.PI*2); pCtx.fillStyle='rgba(120,170,255,0.12)'; pCtx.fill();
+      }
+      requestAnimationFrame(drawParticles);
+    }
+    requestAnimationFrame(drawParticles);
+
+    /* --- Typewriter --- */
+    const phrases = [
+      'We code fast.',
+      'We prototype bold.',
+      'We entered NASA Space Apps.',
+      'We are JAZEY.'
+    ];
+    let pi=0,ci=0,dir=1; const tEl=document.getElementById('typewriter');
+    function tick(){
+      const txt = phrases[pi];
+      tEl.childNodes[0].nodeValue = txt.slice(0,ci);
+      ci+=dir;
+      if(ci>txt.length+8){dir=-1}
+      if(ci<0){dir=1;pi=(pi+1)%phrases.length;ci=0}
+      setTimeout(tick,90 + Math.random()*60);
+    }
+    // initialize text node
+    tEl.childNodes[0].nodeValue = '';
+    tick();
+
+    /* --- Small interactive niceties --- */
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+      })
+    });
+
+    /* --- subtle accessibility tweak: show focus outlines for keyboard users --- */
+    document.addEventListener('keydown',e=>{ if(e.key==='Tab') document.body.classList.add('kbd'); });
+  </script>
+</body>
+</html>
