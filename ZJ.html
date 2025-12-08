@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Butterfly Runner — Grand Wish</title>
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  emailjs.init("fQ6-rdULwdB4oAhBB");
+</script>
+
+<style>
+  :root{
+    --bg1: #0f1724;
+    --bg2: #2b2340;
+    --accent: #ffd6e0;
+    --butterfly: #ff9bd3;
+    --crystal: #9ef7ff;
+    --ui: rgba(255,255,255,0.95);
+    --soft: rgba(255,255,255,0.06);
+    --card: rgba(255,255,255,0.03);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--ui);-webkit-font-smoothing:antialiased;}
+  .game-wrap{width:100%;max-width:520px;margin:20px;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.6);background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);}
+  header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent);}
+  .title{font-weight:700;font-size:16px}
+  .hud{margin-left:auto;display:flex;gap:8px;align-items:center;font-weight:600}
+  .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:6px 10px;border-radius:10px;color:var(--ui);font-weight:600;font-size:13px;cursor:pointer}
+  #gameCanvas{display:block;width:100%;height:66vh;background:
+    radial-gradient(1200px 600px at 10% 10%, rgba(255,255,255,0.03), transparent 5%),
+    radial-gradient(900px 500px at 90% 80%, rgba(255,255,255,0.02), transparent 5%),
+    linear-gradient(180deg,#121228 0%, #1b1530 50%, #241b3b 100%);
+  }
+  .overlay{position:relative;padding:14px;background:linear-gradient(180deg, rgba(0,0,0,0.25), transparent);}
+  .center{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px}
+  .big{font-size:20px;font-weight:800}
+  .small{font-size:13px;opacity:0.9}
+  .msg{background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));padding:10px;border-radius:12px;border:1px solid var(--soft);max-width:460px;text-align:center}
+  .hint{font-size:12px;opacity:0.8}
+  footer{padding:10px 14px;display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13px;}
+  .smallbtn{background:transparent;border:0;color:var(--ui);opacity:0.9;cursor:pointer}
+
+  /* Wish popup */
+  .wish-backdrop{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background: linear-gradient(rgba(2,6,23,0.6), rgba(2,6,23,0.6));
+    z-index:9999;
+  }
+  .wish-card{
+    width: min(92%, 420px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius:14px;
+    padding:16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.04);
+    color: var(--ui);
+    text-align:center;
+  }
+  .wish-card h3{margin:0 0 8px 0;font-size:18px}
+  .wish-card p{margin:0 0 12px 0;font-size:13px;opacity:0.95}
+  .wish-input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--ui);resize:none;height:72px}
+  .wish-row{display:flex;gap:8px;margin-top:12px;justify-content:center}
+  .wish-btn{padding:8px 12px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
+  .send-btn{background: linear-gradient(90deg,#6dd3ff,#7b8cff); color:#051124}
+  .close-btn{background:transparent;border:1px solid rgba(255,255,255,0.06); color:var(--ui)}
+  .note{font-size:12px;opacity:0.85;margin-top:10px}
+  @media (min-width:700px){ #gameCanvas{height:70vh} }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <header>
+      <div class="title">Butterfly Runner</div>
+      <div class="hud">
+        <div id="score">Score: 0</div>
+        <div id="crystals">Crystals: 0</div>
+      </div>
+    </header>
+
+    <canvas id="gameCanvas" tabindex="0"></canvas>
+
+    <div class="overlay">
+      <div class="center">
+        <div id="statusMsg" class="msg small">Tap anywhere to start. Tap to make the butterfly flap. Avoid branches, collect crystals.</div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button id="restartBtn" class="btn">Restart</button>
+          <button id="muteBtn" class="btn">🔊 Sound</button>
+          <button id="shareBtn" class="btn">Share Link</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="small hint">Designed for someone special — safe & gentle.</div>
+      <div>High Score: <span id="hiScore">0</span> | Crystal High: <span id="hiCrystal">0</span></div>
+    </footer>
+  </div>
+
+  <!-- Wish popup -->
+  <div id="wishBackdrop" class="wish-backdrop" aria-hidden="true">
+    <div class="wish-card" role="dialog" aria-modal="true" aria-labelledby="wishTitle">
+      <h3 id="wishTitle">🎉 Grand Wish Unlocked 🎉</h3>
+      <p>If there's one small thing you truly desire, type it below. Press <strong>Send Wish</strong> to deliver it.</p>
+      <textarea id="wishInput" class="wish-input" placeholder="Type one small wish..."></textarea>
+      <div class="wish-row">
+        <button id="sendWishBtn" class="wish-btn send-btn">Send Wish</button>
+        <button id="closeWishBtn" class="wish-btn close-btn">Close</button>
+      </div>
+      <div class="note">Only send if you want to share — the message will be emailed to the game owner when you press Send.</div>
+    </div>
+  </div>
+
+<script>
+const SERVICE_ID = 'service_1rml0rh';
+const TEMPLATE_ID = 'template_j2j91y6';
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: true });
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+
+function resize(){
+  DPR = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.floor(canvas.clientWidth * DPR);
+  canvas.height = Math.floor(canvas.clientHeight * DPR);
+}
+window.addEventListener('resize', resize);
+resize();
+
+let running = false;
+let gameOver = false;
+let frame = 0;
+let score = 0;
+let crystals = 0;
+let hiScore = Number(localStorage.getItem('butter_hi')||0);
+let hiCrystal = Number(localStorage.getItem('butter_crystal_hi')||0);
+document.getElementById('hiScore').textContent = hiScore;
+document.getElementById('hiCrystal').textContent = hiCrystal;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let soundOn = true;
+document.getElementById('muteBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  document.getElementById('muteBtn').textContent = soundOn ? '🔊 Sound' : '🔇 Muted';
+});
+
+function chime(freq=880, time=0.06){
+  if(!soundOn) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type='sine'; o.frequency.value = freq;
+  g.gain.value = 0.0001;
+  o.connect(g); g.connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  g.gain.exponentialRampToValueAtTime(0.08, now + 0.006);
+  o.start(now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + time);
+  o.stop(now + time + 0.02);
+}
+
+const messages = [
+  "You’re brighter than you think.",
+  "Small moments can feel magical — like you.",
+  "Keep going — someone believes in you.",
+  "Your smile matters more than you know.",
+  "Take a breath. Today’s little victories count.",
+  "You bring calm to busy days.",
+  "You’re creative and kind — don’t forget.",
+  "Gentle reminder: you're doing great.",
+  "A small sparkle for a beautiful person.",
+  "You make the world softer just by being you."
+];
+
+const player = { x:100*DPR, y:canvas.height/2, vy:0, w:32*DPR, h:24*DPR, gravity:0.55*DPR, flap:-9*DPR };
+let obstacles = [];
+let pickups = [];
+
+function spawnObstacle(){ const gap = (120 + Math.random()*80)*DPR; const hTop = 80 + Math.random()*(canvas.height/DPR-300); obstacles.push({x:canvas.width + 60*DPR, topH:hTop*DPR, gap, width:48*DPR}); }
+function spawnCrystal(){ const x = canvas.width + 40*DPR; const y = (80 + Math.random()*(canvas.height/DPR-160))*DPR; pickups.push({x,y,r:12*DPR}); }
+
+function startAudioIfNeeded(){ if(audioCtx.state === 'suspended') audioCtx.resume(); }
+function flap(){ startAudioIfNeeded(); if(!running){ startGame(); return; } if(gameOver){ resetGame(); return; } player.vy = player.flap; chime(1000,0.06); }
+canvas.addEventListener('pointerdown',flap);
+document.addEventListener('keydown', e=>{ if(e.code==='Space') flap(); });
+
+document.getElementById('restartBtn').addEventListener('click', ()=>{ resetGame(); startGame(); });
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+  const url = location.href;
+  try{ if(navigator.share){ await navigator.share({ title:'Butterfly Runner', text:'A small game I made', url }); } 
+  else{ await navigator.clipboard.writeText(url); alert('Link copied — send it to her!'); } } catch(e){}
+});
+
+const wishBackdrop = document.getElementById('wishBackdrop');
+const wishInput = document.getElementById('wishInput');
+const sendWishBtn = document.getElementById('sendWishBtn');
+const closeWishBtn = document.getElementById('closeWishBtn');
+
+let spawnTimer=0, crystalTimer=0, speed=2.2*DPR;
+
+function startGame(){
+  running = true; gameOver=false; frame=0; score=0; crystals=0;
+  obstacles=[]; pickups=[];
+  player.y=canvas.height/2; player.vy=0;
+  spawnTimer=0; crystalTimer=0; speed=2.2*DPR;
+  document.getElementById('statusMsg').textContent = "Good luck! Collect crystals and avoid branches.";
+  document.getElementById('score').textContent='Score: 0';
+  document.getElementById('crystals').textContent='Crystals: 0';
+  requestAnimationFrame(loop);
+}
+
+function resetGame(){
+  running=false; gameOver=false;
+  document.getElementById('statusMsg').textContent = "Tap anywhere to start again.";
+  if(score>hiScore){ hiScore=score; localStorage.setItem('butter_hi',hiScore); document.getElementById('hiScore').textContent=hiScore; }
+  if(crystals>hiCrystal){ hiCrystal=crystals; localStorage.setItem('butter_crystal_hi',hiCrystal); document.getElementById('hiCrystal').textContent=hiCrystal; }
+}
+
+/* draw helpers */
+function drawRoundedRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); ctx.fill(); }
+function drawButterfly(cx,cy,scale=1){ ctx.save(); ctx.translate(cx,cy); ctx.scale(scale,scale); ctx.beginPath(); ctx.ellipse(-10,0,22,16,Math.PI/6,0,Math.PI*2); ctx.ellipse(10,0,22,16,-Math.PI/6,0,Math.PI*2); ctx.fillStyle='rgba(255,155,210,0.95)'; ctx.fill(); ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.beginPath(); ctx.ellipse(-12,-2,8,5,0,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(12,-2,8,5,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#2b172b'; ctx.fillRect(-4,-6,8,12); ctx.strokeStyle='#2b172b'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(-4,-6); ctx.quadraticCurveTo(-10,-14,-14,-18); ctx.stroke(); ctx.beginPath(); ctx.moveTo(4,-6); ctx.quadraticCurveTo(10,-14,14,-18); ctx.stroke(); ctx.restore(); }
+
+function loop(){
+  if(!running) return;
+  frame++;
+  player.vy+=player.gravity; player.y+=player.vy;
+  if(player.y+player.h/2>canvas.height-6*DPR){ player.y=canvas.height-6*DPR-player.h/2; player.vy=0; gameOver=true; }
+  if(player.y-player.h/2<0){ player.y=player.h/2; player.vy=0; }
+
+  spawnTimer++; crystalTimer++;
+  if(spawnTimer>(140-Math.min(80,Math.floor(score/15)))){ spawnObstacle(); spawnTimer=0; }
+  if(crystalTimer>200){ spawnCrystal(); crystalTimer=0; }
+
+  for(let i=obstacles.length-1;i>=0;i--){
+    const o=obstacles[i]; o.x-=Math.floor(speed+Math.min(2.8*DPR,score*0.02));
+    const topBox={x:o.x,y:0,w:o.width,h:o.topH};
+    const bottomBox={x:o.x,y:o.topH+o.gap,w:o.width,h:canvas.height-(o.topH+o.gap)};
+    const px=player.x-player.w/2, py=player.y-player.h/2, pw=player.w, ph=player.h;
+    if(rectIntersect(px,py,pw,ph,topBox.x,topBox.y,topBox.w,topBox.h) || rectIntersect(px,py,pw,ph,bottomBox.x,bottomBox.y,bottomBox.w,bottomBox.h)) gameOver=true;
+    if(o.x+o.width<-40*DPR) obstacles.splice(i,1);
+    if(!o.scored && o.x+o.width<player.x){ score++; o.scored=true; document.getElementById('score').textContent='Score: '+score; }
+  }
+
+  for(let i=pickups.length-1;i>=0;i--){
+    const c=pickups[i]; c.x-=Math.floor(speed+Math.min(2.8*DPR,score*0.02));
+    if(circleRectHit(c.x,c.y,c.r,player.x-player.w/2,player.y-player.h/2,player.w,player.h)){
+      crystals++; pickups.splice(i,1); chime(1400,0.08);
+      document.getElementById('crystals').textContent='Crystals: '+crystals;
+      if(crystals%2===0){
+        const idx = Math.floor((crystals/2-1)%messages.length);
+        showUnlock(messages[idx]);
+      }
+      checkGrandWish();
+    }
+    if(c.x+c.r<-40*DPR) pickups.splice(i,1);
+  }
+
+  if(gameOver){ running=false; document.getElementById('statusMsg').textContent='Game over — tap to try again!'; resetGame(); return; }
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBackground();
+  ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.fillRect(0,canvas.height-10*DPR,canvas.width,10*DPR);
+
+  obstacles.forEach(o=>{
+    ctx.fillStyle='rgba(40,30,45,0.95)'; drawRoundedRect(o.x,0,o.width,o.topH,8*DPR); drawRoundedRect(o.x,o.topH+o.gap,o.width,canvas.height-(o.topH+o.gap),8*DPR);
+    ctx.fillStyle='rgba(255,255,255,0.02)'; ctx.fillRect(o.x+6*DPR,4*DPR,o.width-12*DPR,6*DPR);
+  });
+
+  pickups.forEach(c=>{
+    const g=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r*3); g.addColorStop(0,'rgba(160,255,255,0.14)'); g.addColorStop(1,'rgba(160,255,255,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(c.x,c.y,c.r*3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(158,247,255,0.95)'; ctx.beginPath(); ctx.moveTo(c.x,c.y-c.r); ctx.lineTo(c.x+c.r*0.6,c.y); ctx.lineTo(c.x,c.y+c.r); ctx.lineTo(c.x-c.r*0.6,c.y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(c.x-c.r*0.2,c.y-c.r*0.2,c.r*0.18,0,Math.PI*2); ctx.fill();
+  });
+
+  const tilt=Math.max(-0.8,Math.min(0.8,player.vy/(12*DPR)));
+  ctx.save(); ctx.translate(player.x,player.y); ctx.rotate(tilt*0.35); drawButterfly(0,0,DPR*0.5); ctx.restore();
+  ctx.fillStyle='rgba(255,255,255,0.02)'; ctx.fillRect(8*DPR,8*DPR,150*DPR,34*DPR);
+}
+
+function drawBackground(){
+  for(let i=0;i<4;i++){
+    const x=((frame*0.2*(i+1))%canvas.width), y=40*DPR+i*80*DPR;
+    const grad=ctx.createRadialGradient(x,y,0,x,y,60*DPR); grad.addColorStop(0,'rgba(255,255,255,0.02)'); grad.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(x,y,60*DPR,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function rectIntersect(ax,ay,aw,ah,bx,by,bw,bh){ return ax<bx+bw && ax+aw>bx && ay<by+bh && ay+ah>by; }
+function circleRectHit(cx,cy,r,rx,ry,rw,rh){ const closestX=Math.max(rx,Math.min(cx,rx+rw)); const closestY=Math.max(ry,Math.min(cy,ry+rh)); const dx=cx-closestX, dy=cy-closestY; return dx*dx+dy*dy<r*r; }
+
+function showUnlock(text){ const el=document.getElementById('statusMsg'); el.textContent=text; el.animate([{opacity:0},{opacity:1}],{duration:400}); chime(1500,0.12); setTimeout(()=>{ if(!gameOver) el.textContent='Keep collecting — you’re doing great.'; },4200); }
+
+function checkGrandWish(){
+  if(crystals>=30 && !localStorage.getItem('wish_shown')){ openWishPopup(); localStorage.setItem('wish_shown','1'); }
+}
+function openWishPopup(){ wishBackdrop.style.display='flex'; wishBackdrop.setAttribute('aria-hidden','false'); wishInput.value=''; startAudioIfNeeded(); chime(1700,0.12); }
+function closeWishPopup(){ wishBackdrop.style.display='none'; wishBackdrop.setAttribute('aria-hidden','true'); }
+
+sendWishBtn.addEventListener('click', async ()=>{
+  const text=wishInput.value.trim(); if(!text){ alert('Please type a short wish first.'); return; }
+  sendWishBtn.disabled=true; sendWishBtn.textContent='Sending...';
+  try{ await emailjs.send(SERVICE_ID,TEMPLATE_ID,{wish_text:text}); alert('Thank you — your wish was sent.'); closeWishPopup(); }
+  catch(err){ console.error('EmailJS error:',err); alert('Could not send. Please try again later.'); }
+  finally{ sendWishBtn.disabled=false; sendWishBtn.textContent='Send Wish'; }
+});
+closeWishBtn.addEventListener('click',()=>{ closeWishPopup(); });
+
+document.getElementById('statusMsg').addEventListener('click',()=>{ if(!running) startGame(); });
+
+(function init(){ ctx.clearRect(0,0,canvas.width,canvas.height); drawBackground(); drawButterfly(canvas.width/5,canvas.height/2,DPR*0.7); document.getElementById('statusMsg').textContent='Tap anywhere to start. Tap to flap.'; })();
+</script>
+</body>
+</html>
