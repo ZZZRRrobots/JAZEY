@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Happy New Year ✨</title>
 <style>
-/* --- Base reset --- */
 * {margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;}
 body {
   height: 100vh;
@@ -16,8 +15,6 @@ body {
   justify-content: center;
   overflow: hidden;
 }
-
-/* --- Screens --- */
 .screen {
   position: absolute;
   width: 100%;
@@ -33,10 +30,8 @@ body {
   pointer-events:none;
 }
 .screen.active {opacity:1; pointer-events:auto;}
-
 h1 {font-size:1.8rem; font-weight:500; margin-bottom:24px;}
 p {font-size:1.2rem; opacity:0.9; margin-top:12px;}
-
 button {
   padding:14px 36px;
   border-radius:40px;
@@ -48,24 +43,68 @@ button {
   transition: all 0.4s ease;
 }
 button:hover {box-shadow:0 0 25px rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);}
-
-/* --- Typing --- */
-.typing {font-size:1.3rem; min-height:2em;}
-
-/* --- Particles --- */
+.typing {
+  font-size:1.3rem; 
+  min-height:2em;
+  opacity:1; 
+  transition: opacity 1s ease;
+  position:relative;
+  color:#bfe8ff;
+  text-shadow:
+    0 0 4px #8be4ff,
+    0 0 8px #bfe8ff,
+    0 0 12px #95cfff;
+}
 canvas {position:absolute; inset:0; z-index:0; pointer-events:none;}
-#particles {opacity:0.15;}
-
-/* --- Final message glow --- */
+.final-wrapper {
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.mist {
+  position:absolute;
+  width:300px;
+  height:300px;
+  background: radial-gradient(circle, rgba(255,255,200,0.1) 0%, transparent 80%);
+  filter: blur(50px);
+  animation:mistFloat 4s ease-in-out infinite alternate;
+  z-index:-1;
+}
+@keyframes mistFloat {
+  0%{transform:translate(0,0) scale(1);}
+  50%{transform:translate(20px,-10px) scale(1.1);}
+  100%{transform:translate(0,0) scale(1);}
+}
 .final {
   opacity:0;
   font-size:1.8rem;
   animation:fadeIn 2s ease forwards;
+  position:relative;
+  z-index:1;
 }
 @keyframes fadeIn {from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
-
-/* --- Sparkle on click --- */
-.sparkle {
+.glow-star {
+  display:inline-block;
+  color:#ffd700;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 8px #fff,
+    0 0 12px #ffd700,
+    0 0 16px #ffd700;
+  animation:starGlow 1.8s ease-in-out infinite alternate, starFloat 3s ease-in-out infinite alternate;
+  position:relative;
+}
+@keyframes starGlow {
+  0% { text-shadow: 0 0 2px #fff,0 0 6px #fff,0 0 10px #ffd700,0 0 14px #ffd700; }
+  100% { text-shadow: 0 0 6px #fff,0 0 10px #fff,0 0 16px #ffd700,0 0 24px #ffd700; }
+}
+@keyframes starFloat {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+.sparkle, .trail {
   position:absolute;
   width:6px; height:6px;
   background: gold;
@@ -78,44 +117,28 @@ canvas {position:absolute; inset:0; z-index:0; pointer-events:none;}
   0%{transform:translate(0,0); opacity:1;}
   100%{transform:translate(var(--x), var(--y)); opacity:0;}
 }
-
-/* --- ✨ glowing effect --- */
-.glow-star {
-  display:inline-block;
-  color:#ffd700;
-  text-shadow:
-    0 0 4px #fff,
-    0 0 8px #fff,
-    0 0 12px #ffd700,
-    0 0 16px #ffd700;
-  animation:starGlow 1.8s ease-in-out infinite alternate;
-}
-@keyframes starGlow {
-  0% { text-shadow: 0 0 2px #fff,0 0 6px #fff,0 0 10px #ffd700,0 0 14px #ffd700; }
-  100% { text-shadow: 0 0 6px #fff,0 0 10px #fff,0 0 16px #ffd700,0 0 24px #ffd700; }
-}
-
 @media(max-width:480px){h1{font-size:1.5rem;} p{font-size:1rem;}}
 </style>
 </head>
 <body>
 
 <canvas id="particles"></canvas>
+<canvas id="stars"></canvas>
 
-<!-- Screen 1 -->
 <div class="screen active" id="screen1">
   <h1>This website wasn’t made for everyone.</h1>
   <button onclick="goNext()">Continue</button>
 </div>
 
-<!-- Screen 2 -->
 <div class="screen" id="screen2">
   <div class="typing" id="typing"></div>
 </div>
 
-<!-- Screen 3 -->
 <div class="screen" id="screen3">
-  <div class="final" id="finalMsg">Happy New Year <span class="glow-star">✨</span></div>
+  <div class="final-wrapper">
+    <div class="mist"></div>
+    <div class="final" id="finalMsg">Happy New Year <span class="glow-star" id="star">✨</span></div>
+  </div>
 </div>
 
 <script>
@@ -123,14 +146,11 @@ canvas {position:absolute; inset:0; z-index:0; pointer-events:none;}
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
 function resize(){canvas.width=innerWidth; canvas.height=innerHeight;}
-resize();
-window.addEventListener('resize', resize);
-
-const particles=[];
-for(let i=0;i<80;i++) {
+resize(); window.addEventListener('resize', resize);
+const particles=[]; for(let i=0;i<80;i++){
   particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:1+Math.random()*2, dx:(Math.random()-0.5)*0.3, dy:(Math.random()-0.5)*0.3});
 }
-
+let particleGlow=0;
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   for(const p of particles){
@@ -138,38 +158,40 @@ function draw(){
     if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;
     if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.15)';
+    ctx.arc(p.x,p.y,p.r+particleGlow,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,'+(0.12+particleGlow*0.08)+')';
     ctx.fill();
   }
   requestAnimationFrame(draw);
 }
 draw();
 
-// --- Screen transitions & typing ---
+// --- Typing ---
 const screen1=document.getElementById('screen1');
 const screen2=document.getElementById('screen2');
 const screen3=document.getElementById('screen3');
 const typingEl=document.getElementById('typing');
 const messages=["If you’re seeing this…","You matter."];
 let msgIndex=0, charIndex=0;
-
 function goNext(){
   screen1.classList.remove('active');
   setTimeout(()=>{screen2.classList.add('active'); typeText();},800);
 }
-
 function typeText(){
   if(msgIndex>=messages.length){
+    typingEl.style.opacity=0;
+    let glowInterval = setInterval(()=>{particleGlow=Math.min(particleGlow+0.02,0.5)},50);
     setTimeout(()=>{
       screen2.classList.remove('active');
       screen3.classList.add('active');
-    },1000);
+      clearInterval(glowInterval);
+    },1500);
     return;
   }
   if(charIndex<messages[msgIndex].length){
     typingEl.textContent+=messages[msgIndex].charAt(charIndex);
     charIndex++;
+    typingEl.style.textShadow=`0 0 ${2+Math.random()*3}px #8be4ff,0 0 ${4+Math.random()*4}px #bfe8ff,0 0 ${6+Math.random()*6}px #95cfff`;
     setTimeout(typeText,60);
   } else {
     setTimeout(()=>{
@@ -181,7 +203,7 @@ function typeText(){
   }
 }
 
-// --- Sparkle on click Easter egg ---
+// --- Sparkle on click ---
 document.getElementById('finalMsg').addEventListener('click', e=>{
   for(let i=0;i<12;i++){
     const sp=document.createElement('div');
@@ -194,6 +216,47 @@ document.getElementById('finalMsg').addEventListener('click', e=>{
     setTimeout(()=>sp.remove(),1000);
   }
 });
+
+// --- Floating star trail ---
+const star=document.getElementById('star');
+function createTrail(){
+  const tr=document.createElement('div');
+  tr.className='trail';
+  const rect=star.getBoundingClientRect();
+  const x=rect.left+rect.width/2 + (Math.random()-0.5)*20;
+  const y=rect.top+rect.height/2 + (Math.random()-0.5)*20;
+  tr.style.left=x+'px';
+  tr.style.top=y+'px';
+  tr.style.setProperty('--x', (Math.random()-0.5)*40+'px');
+  tr.style.setProperty('--y', (Math.random()-0.5)*40+'px');
+  document.body.appendChild(tr);
+  setTimeout(()=>tr.remove(),1200);
+}
+setInterval(createTrail,150);
+
+// --- Twinkling stars overlay ---
+const starsCanvas=document.getElementById('stars');
+const sCtx=starsCanvas.getContext('2d');
+function resizeStars(){starsCanvas.width=innerWidth; starsCanvas.height=innerHeight;}
+resizeStars(); window.addEventListener('resize',resizeStars);
+const stars=[];
+for(let i=0;i<150;i++){
+  stars.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:Math.random()*1.5, alpha:Math.random(), dAlpha:0.005+Math.random()*0.01});
+}
+function drawStars(){
+  sCtx.clearRect(0,0,starsCanvas.width,starsCanvas.height);
+  for(const st of stars){
+    st.alpha+=st.dAlpha;
+    if(st.alpha>1){st.alpha=1; st.dAlpha*=-1;}
+    if(st.alpha<0){st.alpha=0; st.dAlpha*=-1;}
+    sCtx.beginPath();
+    sCtx.arc(st.x, st.y, st.r, 0, Math.PI*2);
+    sCtx.fillStyle=`rgba(200,220,255,${st.alpha})`;
+    sCtx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+drawStars();
 </script>
 </body>
 </html>
