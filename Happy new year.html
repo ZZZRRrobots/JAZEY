@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Year</title>
+
+  <style>
+    /* RESET */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at top, #111 0%, #000 60%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 1s ease;
+      pointer-events: none;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin-top: 12px;
+    }
+
+    .btn {
+      margin-top: 32px;
+      padding: 14px 36px;
+      border-radius: 40px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+
+    .btn:hover {
+      box-shadow: 0 0 25px rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .typing {
+      font-size: 1.3rem;
+      min-height: 2em;
+    }
+
+    .glow {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%);
+      animation: float 10s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .final {
+      animation: fadeIn 2s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5rem; }
+      p { font-size: 1rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Screen 1 -->
+  <div class="screen active" id="screen1">
+    <h1>This website wasn’t made for everyone.</h1>
+    <button class="btn" onclick="goNext()">Continue</button>
+  </div>
+
+  <!-- Screen 2 -->
+  <div class="screen" id="screen2">
+    <div class="typing" id="typing"></div>
+  </div>
+
+  <!-- Screen 3 -->
+  <div class="screen" id="screen3">
+    <div class="glow"></div>
+    <div class="final">
+      <p style="margin-top:24px; font-size:1.2rem;">
+        Happy New Year ✨
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const screen1 = document.getElementById("screen1");
+    const screen2 = document.getElementById("screen2");
+    const screen3 = document.getElementById("screen3");
+    const typingEl = document.getElementById("typing");
+
+    const messages = [
+      "If you’re seeing this…",
+      "You matter."
+    ];
+
+    let msgIndex = 0;
+    let charIndex = 0;
+
+    function goNext() {
+      screen1.classList.remove("active");
+      setTimeout(() => {
+        screen2.classList.add("active");
+        typeText();
+      }, 800);
+    }
+
+    function typeText() {
+      if (msgIndex >= messages.length) {
+        setTimeout(() => {
+          screen2.classList.remove("active");
+          screen3.classList.add("active");
+        }, 1000);
+        return;
+      }
+
+      if (charIndex < messages[msgIndex].length) {
+        typingEl.textContent += messages[msgIndex].charAt(charIndex);
+        charIndex++;
+        setTimeout(typeText, 60);
+      } else {
+        setTimeout(() => {
+          typingEl.textContent = "";
+          charIndex = 0;
+          msgIndex++;
+          typeText();
+        }, 1000);
+      }
+    }
+  </script>
+
+</body>
+</html>
