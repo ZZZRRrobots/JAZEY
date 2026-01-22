@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Birthday - Jaidaa</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #010102; font-family: 'Segoe UI', 'Raleway', sans-serif; }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10; display: flex; flex-direction: column;
+            justify-content: space-between; align-items: center; padding: 40px 0;
+            color: white; text-align: center;
+        }
+
+        #wishes {
+            position: absolute; top: 25%; left: 50%; transform: translateX(-50%);
+            width: 100%; text-align: center; z-index: 15;
+            opacity: 0; transition: opacity 1s ease;
+            font-size: 22px; letter-spacing: 0.1em; color: #00eaff;
+            pointer-events: auto;
+        }
+        #wishes p { margin: 5px 0; min-height: 30px; }
+        span { display: inline-block; margin: 0 3px; transition: color 0.3s; }
+        span.jump { animation: jump 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0s 2 alternate; color: #fff; text-shadow: 0 0 10px #00eaff; }
+        @keyframes jump { to { transform: translateY(-0.7em); } }
+
+        /* --- MESSAGE REVEAL STYLES --- */
+        #final-letter {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 600px; color: white; text-align: center;
+            z-index: 200; opacity: 0; display: none; transition: opacity 2s ease;
+            background: rgba(0, 0, 0, 0.7); padding: 35px; border-radius: 20px;
+            backdrop-filter: blur(15px); border: 1px solid rgba(0, 234, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 234, 255, 0.1);
+        }
+        #final-letter h2 { color: #00eaff; margin-bottom: 15px; font-weight: 300; letter-spacing: 3px; }
+        #final-letter p { line-height: 1.8; font-size: 1.1rem; color: #e0faff; }
+
+        #open-btn {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            padding: 15px 40px; background: rgba(0, 234, 255, 0.1); border: 1px solid #00eaff;
+            color: #00eaff; cursor: pointer; border-radius: 50px; font-weight: bold;
+            display: none; z-index: 210; transition: all 0.4s; letter-spacing: 2px;
+        }
+        #open-btn:hover { background: #00eaff; color: #000; box-shadow: 0 0 30px #00eaff; transform: translate(-50%, -50%) scale(1.05); }
+
+        .glow-text {
+            text-transform: uppercase; letter-spacing: 5px;
+            text-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
+            opacity: 0.7; transition: all 1s ease;
+        }
+        #countdown { font-size: 3rem; font-weight: bold; font-family: monospace; cursor: pointer; pointer-events: auto;}
+
+        #hand-monitor {
+            position: absolute; bottom: 20px; right: 20px;
+            width: 140px; height: 100px; border: 1px solid rgba(0, 234, 255, 0.2);
+            border-radius: 8px; overflow: hidden; z-index: 100;
+            background: #000; transform: scaleX(-1);
+        }
+        #webcam-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+
+        #photo-reveal {
+            position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%);
+            display: flex; gap: 60px; opacity: 0; transition: opacity 3s ease;
+            pointer-events: none; z-index: 5;
+        }
+        .photo-frame {
+            width: 180px; height: 180px;
+            background-size: cover; background-position: center;
+            border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            background-image: url('https://picsum.photos/400/400?random=1');
+        }
+        .photo-frame:nth-child(2) { background-image: url('https://picsum.photos/400/400?random=2'); }
+        .photo-frame:nth-child(3) { background-image: url('https://picsum.photos/400/400?random=3'); }
+
+        #gesture-prompt {
+            position: absolute; bottom: 160px; color: #00eaff; 
+            font-size: 0.8rem; letter-spacing: 3px; opacity: 0;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="wishes">
+        <p id="p1"></p><p id="p2"></p><p id="p3"></p><p id="p4"></p>
+    </div>
+
+    <button id="open-btn">READ MY MESSAGE</button>
+    <div id="final-letter">
+        <h2>To Jaidaa,</h2>
+        <p>Happy Birthday to one of the best people in my life! Being friends with you is truly one of the greatest things that has ever happened to me. You make every moment brighter, and I am so grateful for our friendship. I hope your day is as incredible as you are!</p>
+    </div>
+
+    <div id="hand-monitor"><video id="webcam-video" autoplay playsinline muted></video></div>
+    <div id="gesture-prompt">HOLD 🤟 TO REVEAL</div>
+
+    <div id="ui-layer">
+        <div class="glow-text">
+            <h1 style="font-size: 0.9rem; margin-bottom: 0;">Happy Birthday</h1>
+            <h2 id="name-display" style="font-size: 3rem; margin-top: 0;">JUJU</h2>
+        </div>
+        <div class="glow-text">
+            <div id="countdown">LOADING...</div>
+            <p id="sub-text" style="font-size: 0.7rem;">UNTIL JUNE 3RD</p>
+        </div>
+    </div>
+
+    <div id="photo-reveal">
+        <div class="photo-frame"></div>
+        <div class="photo-frame"></div>
+        <div class="photo-frame"></div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+            "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [
+            {f:262,d:.5,t:"Hap",p:p1},{f:262,d:.5,t:"py&nbsp",p:p1},{f:294,d:1,t:"Birth",p:p1},{f:262,d:1,t:"day&nbsp",p:p1},{f:349,d:1,t:"To&nbsp",p:p1},{f:330,d:2,t:"You",p:p1},
+            {f:262,d:.5,t:"Hap",p:p2},{f:262,d:.5,t:"py&nbsp",p:p2},{f:294,d:1,t:"Birth",p:p2},{f:262,d:1,t:"day&nbsp",p:p2},{f:392,d:1,t:"To&nbsp;",p:p2},{f:349,d:2,t:"You",p:p2},
+            {f:262,d:.5,t:"Hap",p:p3},{f:262,d:.5,t:"py&nbsp;",p:p3},{f:523,d:1,t:"Birth",p:p3},{f:440,d:1,t:"day&nbsp;",p:p3},{f:349,d:1,t:"Dear&nbsp;",p:p3},{f:330,d:1,t:"Jai",p:p3},{f:294,d:3,t:"daa",p:p3},
+            {f:466,d:.5,t:"Hap",p:p4},{f:466,d:.5,t:"py&nbsp;",p:p4},{f:440,d:1,t:"Birth",p:p4},{f:349,d:1,t:"day&nbsp;",p:p4},{f:392,d:1,t:"To&nbsp;",p:p4},{f:349,d:2,t:"You",p:p4}
+        ];
+        let sounds = [];
+
+        const CONFIG = {
+            totalParticles: 25000,
+            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0x999999 },
+            targetDate: new Date("June 3, 2026 00:00:00").getTime()
+        };
+
+        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, isSpecialGesture = false;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 60;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.9);
+        composer.addPass(bloom);
+
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(CONFIG.totalParticles * 3);
+        const tar = new Float32Array(CONFIG.totalParticles * 3);
+        const vel = new Float32Array(CONFIG.totalParticles * 3);
+        const col = new Float32Array(CONFIG.totalParticles * 3);
+
+        function setCakeTargets() {
+            for(let i=0; i<CONFIG.totalParticles; i++) {
+                const i3 = i * 3;
+                let tx, ty, tz, r = Math.random();
+                if(r < 0.6) {
+                    const rad = Math.sqrt(Math.random()) * 11; const theta = Math.random() * Math.PI * 2;
+                    tx = rad * Math.cos(theta); ty = (Math.random() * 7) - 9; tz = rad * Math.sin(theta);
+                } else if (r < 0.9) {
+                    const rad = Math.sqrt(Math.random()) * 7; const theta = Math.random() * Math.PI * 2;
+                    tx = rad * Math.cos(theta); ty = (Math.random() * 6) - 2; tz = rad * Math.sin(theta);
+                } else {
+                    tx = (Math.random() - 0.5) * 10; ty = 4 + (Math.random() * 5); tz = (Math.random() - 0.5) * 10;
+                }
+                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
+            }
+        }
+
+        function setFrameTargets() {
+            const colors = geo.attributes.color.array;
+            for(let i=0; i<CONFIG.totalParticles; i++) {
+                const i3 = i * 3, frameIdx = i % 3;
+                const offsetX = (frameIdx - 1) * 24.5; 
+                const side = Math.random();
+                let lx, ly;
+                if(side < 0.25) { lx = (Math.random()-0.5)*20; ly = 10; } 
+                else if(side < 0.5) { lx = (Math.random()-0.5)*20; ly = -10; }
+                else if(side < 0.75) { lx = -10; ly = (Math.random()-0.5)*20; }
+                else { lx = 10; ly = (Math.random()-0.5)*20; }
+                
+                tar[i3] = offsetX + lx; 
+                tar[i3+1] = ly - 12; 
+                tar[i3+2] = 2;
+                colors[i3] = 0.9; colors[i3+1] = 0.9; colors[i3+2] = 0.9;
+            }
+            geo.attributes.color.needsUpdate = true;
+        }
+
+        setCakeTargets();
+        for(let i=0; i<CONFIG.totalParticles; i++){
+            const i3 = i * 3;
+            pos[i3] = (Math.random()-0.5)*100; pos[i3+1] = (Math.random()-0.5)*100; pos[i3+2] = (Math.random()-0.5)*100;
+            const c = new THREE.Color(Math.random() < 0.5 ? CONFIG.colors.yellow : CONFIG.colors.blue);
+            col[i3] = c.r; col[i3+1] = c.g; col[i3+2] = c.b;
+        }
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('target', new THREE.BufferAttribute(tar, 3));
+        geo.setAttribute('velocity', new THREE.BufferAttribute(vel, 3));
+        geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.7 }));
+        scene.add(particleSystem);
+
+        class Sound {
+            constructor(freq, dur, i) {
+                this.freq = freq; this.dur = dur; this.index = i;
+                this.sp = notes[i].sp; this.speed = dur * 0.5;
+            }
+            play() {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "triangle"; osc.frequency.value = this.freq;
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + this.speed);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); this.sp.classList.add("jump");
+                osc.stop(audioCtx.currentTime + this.speed);
+                osc.onended = () => {
+                    this.sp.classList.remove("jump");
+                    if(this.index < sounds.length - 1) sounds[this.index + 1].play();
+                    else {
+                        // Song finished: Show the message button
+                        document.getElementById('open-btn').style.display = 'block';
+                    }
+                };
+            }
+        }
+
+        notes.forEach((n, i) => {
+            n.sp = document.createElement("span"); n.sp.innerHTML = n.t;
+            n.p.appendChild(n.sp);
+            sounds.push(new Sound(n.f, n.d, i));
+        });
+
+        // --- LETTER REVEAL LOGIC ---
+        document.getElementById('open-btn').addEventListener('click', () => {
+            document.getElementById('open-btn').style.display = 'none';
+            document.getElementById('wishes').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('wishes').style.display = 'none';
+                const letter = document.getElementById('final-letter');
+                letter.style.display = 'block';
+                setTimeout(() => letter.style.opacity = '1', 50);
+            }, 1000);
+        });
+
+        let handLandmarker, handPos = new THREE.Vector3(1000, 1000, 1000);
+        async function initAI() {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm");
+            handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate: "GPU" },
+                runningMode: "VIDEO", numHands: 1
+            });
+            const video = document.getElementById('webcam-video');
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.addEventListener("loadeddata", () => {
+                const detect = () => {
+                    const res = handLandmarker.detectForVideo(video, performance.now());
+                    if (res.landmarks?.[0]) {
+                        const l = res.landmarks[0];
+                        handPos.set((0.5 - l[8].x) * 80, (0.5 - l[8].y) * 55, 0);
+                        isSpecialGesture = l[8].y < l[6].y && l[20].y < l[18].y && l[12].y > l[9].y;
+                    } else { isSpecialGesture = false; handPos.set(1000,1000,1000); }
+                    requestAnimationFrame(detect);
+                };
+                detect();
+            });
+        }
+        initAI();
+
+        function startReveal() {
+            if (appState === "REVEAL") return;
+            appState = "REVEAL"; setFrameTargets();
+            geo.attributes.target.needsUpdate = true;
+            document.getElementById('name-display').innerText = "JAIDAA";
+            document.getElementById('countdown').style.display = "none";
+            document.getElementById('sub-text').style.display = "none";
+            document.getElementById('gesture-prompt').style.opacity = "0";
+            document.getElementById('photo-reveal').style.opacity = "1";
+            document.getElementById('wishes').style.opacity = "1";
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            sounds[0].play();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const p = geo.attributes.position.array, t = geo.attributes.target.array, v = geo.attributes.velocity.array;
+            if (isSpecialGesture && isTimerFinished && appState === "COUNTDOWN") {
+                gestureTimer += 0.02;
+                if (gestureTimer > 1.0) startReveal();
+            } else { gestureTimer = Math.max(0, gestureTimer - 0.05); }
+
+            for(let i=0; i<CONFIG.totalParticles; i++) {
+                const i3 = i * 3;
+                p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2];
+                v[i3] *= 0.92; v[i3+1] *= 0.92; v[i3+2] *= 0.92;
+                const dx = p[i3] - handPos.x, dy = p[i3+1] - handPos.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 10) { v[i3] += (dx/dist) * (10-dist)*0.15; v[i3+1] += (dy/dist) * (10-dist)*0.15; }
+                const s = (appState === "REVEAL") ? 0.025 : 0.045;
+                p[i3] += (t[i3] - p[i3]) * s; p[i3+1] += (t[i3+1] - p[i3+1]) * s; p[i3+2] += (t[i3+2] - p[i3+2]) * s;
+            }
+            geo.attributes.position.needsUpdate = true;
+            composer.render();
+        }
+
+        setInterval(() => {
+            const diff = CONFIG.targetDate - new Date().getTime();
+            isTimerFinished = true; // Still set to true for your testing
+            if (diff <= 0 || isTimerFinished) {
+                isTimerFinished = true;
+                if(appState === "COUNTDOWN") {
+                    document.getElementById('countdown').innerText = "READY! 🤟";
+                    document.getElementById('gesture-prompt').style.opacity = "0.5";
+                }
+            } else {
+                const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4), s = Math.floor(diff%6e4/1e3);
+                document.getElementById('countdown').innerText = `${d}:${h}:${m}:${s}`;
+            }
+        }, 1000);
+
+        document.getElementById('countdown').addEventListener('click', () => { if(isTimerFinished) startReveal(); });
+
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
