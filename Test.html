@@ -327,7 +327,7 @@
 
         setInterval(() => {
             const diff = CONFIG.targetDate - new Date().getTime();
-            isTimerFinished = true; // REMOVE THIS LINE TO RE-ENABLE ACTUAL COUNTDOWN
+            //isTimerFinished = true; // REMOVE THIS LINE TO RE-ENABLE ACTUAL COUNTDOWN
             if (diff <= 0 || isTimerFinished) {
                 isTimerFinished = true;
                 if(appState === "COUNTDOWN") {
