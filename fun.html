@@ -3,218 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hand Tracking Particle Shapes</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <title>3D Hand Particle Sandbox</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-    
+
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
-        canvas { display: block; }
+        body { margin: 0; background: #050505; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         
-        #ui-layer {
-            position: absolute;
+        /* Camera Box - Small and Styled */
+        #video-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 180px;
+            height: 120px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* UI Menu */
+        #ui-bar {
+            position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px 25px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 25px;
+            border-radius: 100px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
         }
 
-        .shape-btn {
-            width: 50px;
-            height: 50px;
-            border: 2px solid white;
-            background: transparent;
+        .btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
+            padding: 10px 18px;
+            border-radius: 50px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            font-size: 20px;
-            border-radius: 10px;
+            transition: all 0.3s;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .shape-btn:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
-        .active { background: white !important; color: black; }
-        
-        #video-container { position: fixed; top: 10px; right: 10px; width: 150px; border: 2px solid #555; }
-        video { width: 100%; transform: scaleX(-1); }
+        .btn:hover { background: white; color: black; transform: translateY(-3px); }
+        .active { background: #00f2ff; color: black; border-color: #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+
+        #loading {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 20px; letter-spacing: 4px; opacity: 0.8;
+        }
     </style>
 </head>
 <body>
 
+<div id="loading">INITIALIZING SENSORS...</div>
 <div id="video-container"><video id="input_video"></video></div>
 
-<div id="ui-layer">
-    <button class="shape-btn active" onclick="setShape('heart')">❤</button>
-    <button class="shape-btn" onclick="setShape('star')">⭐</button>
-    <button class="shape-btn" onclick="setShape('circle')">⚪</button>
-    <button class="shape-btn" onclick="setShape('square')">⬜</button>
-    <button class="shape-btn" onclick="setShape('cake')">🎂</button>
+<div id="ui-bar">
+    <button class="btn active" onclick="changeShape('sphere')">Sphere</button>
+    <button class="btn" onclick="changeShape('torus')">Torus</button>
+    <button class="btn" onclick="changeShape('heart')">Heart</button>
+    <button class="btn" onclick="changeShape('galaxy')">Galaxy</button>
+    <button class="btn" onclick="changeShape('cube')">Cube</button>
 </div>
 
 <script>
-    let particles = [];
-    let targets = [];
-    let currentShape = 'heart';
-    let handX = 0, handY = 0;
-    const numParticles = 600;
+    let scene, camera, renderer, particles, particleSystem;
+    const particleCount = 15000;
+    let targetPositions = [];
+    let handPos = new THREE.Vector3(0, 0, 0);
+    let currentShape = 'sphere';
 
-    function setup() {
-        createCanvas(windowWidth, windowHeight);
-        // Initialize particles at random positions
-        for (let i = 0; i < numParticles; i++) {
-            particles.push(new Particle());
+    init();
+    animate();
+
+    function init() {
+        // Scene Setup
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        // Particle Geometry
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i*3] = (Math.random() - 0.5) * 10;
+            positions[i*3+1] = (Math.random() - 0.5) * 10;
+            positions[i*3+2] = (Math.random() - 0.5) * 10;
+            
+            colors[i*3] = 0.5 + Math.random() * 0.5;
+            colors[i*3+1] = 0.8 + Math.random() * 0.2;
+            colors[i*3+2] = 1.0;
         }
-        createShapePoints();
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.015,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        particleSystem = new THREE.Points(geometry, material);
+        scene.add(particleSystem);
+
+        generateShape('sphere');
+        setupHandTracking();
     }
 
-    function draw() {
-        background(0, 30); // Slight trail effect
-
-        // Draw and update particles
-        for (let i = 0; i < particles.length; i++) {
-            let target = targets[i % targets.length];
-            particles[i].behaviors(target, handX, handY);
-            particles[i].update();
-            particles[i].show();
-        }
-    }
-
-    class Particle {
-        constructor() {
-            this.pos = createVector(random(width), random(height));
-            this.target = createVector(random(width), random(height));
-            this.vel = p5.Vector.random2D();
-            this.acc = createVector();
-            this.r = 4;
-            this.maxspeed = 10;
-            this.maxforce = 1;
-            this.color = color(random(150, 255), random(100, 200), 255);
-        }
-
-        behaviors(target, hX, hY) {
-            let arrive = this.arrive(target);
-            let mouse = createVector(hX, hY);
-            let flee = this.flee(mouse);
-
-            arrive.mult(1);
-            flee.mult(5);
-
-            this.applyForce(arrive);
-            this.applyForce(flee);
-        }
-
-        applyForce(f) { this.acc.add(f); }
-
-        update() {
-            this.pos.add(this.vel);
-            this.vel.add(this.acc);
-            this.acc.mult(0);
-        }
-
-        show() {
-            stroke(this.color);
-            strokeWeight(this.r);
-            point(this.pos.x, this.pos.y);
-        }
-
-        arrive(target) {
-            let desired = p5.Vector.sub(target, this.pos);
-            let d = desired.mag();
-            let speed = this.maxspeed;
-            if (d < 100) speed = map(d, 0, 100, 0, this.maxspeed);
-            desired.setMag(speed);
-            let steer = p5.Vector.sub(desired, this.vel);
-            steer.limit(this.maxforce);
-            return steer;
-        }
-
-        flee(target) {
-            let desired = p5.Vector.sub(target, this.pos);
-            let d = desired.mag();
-            if (d < 100) {
-                desired.setMag(this.maxspeed);
-                desired.mult(-1);
-                let steer = p5.Vector.sub(desired, this.vel);
-                steer.limit(this.maxforce);
-                return steer;
-            } else {
-                return createVector(0, 0);
+    function generateShape(type) {
+        targetPositions = [];
+        for (let i = 0; i < particleCount; i++) {
+            let x, y, z;
+            if (type === 'sphere') {
+                const phi = Math.acos(-1 + (2 * i) / particleCount);
+                const theta = Math.sqrt(particleCount * Math.PI) * phi;
+                x = 2 * Math.cos(theta) * Math.sin(phi);
+                y = 2 * Math.sin(theta) * Math.sin(phi);
+                z = 2 * Math.cos(phi);
+            } else if (type === 'torus') {
+                const u = Math.random() * Math.PI * 2;
+                const v = Math.random() * Math.PI * 2;
+                x = (2 + 0.5 * Math.cos(v)) * Math.cos(u);
+                y = (2 + 0.5 * Math.cos(v)) * Math.sin(u);
+                z = 0.5 * Math.sin(v);
+            } else if (type === 'heart') {
+                const t = Math.random() * Math.PI * 2;
+                const p = Math.random() * Math.PI;
+                x = 1.5 * Math.pow(Math.sin(p), 3) * Math.sin(t);
+                y = (1.2 * Math.cos(p) - 0.5 * Math.cos(2*p) - 0.2 * Math.cos(3*p) - 0.1 * Math.cos(4*p));
+                z = 1.5 * Math.pow(Math.sin(p), 3) * Math.cos(t);
+            } else if (type === 'galaxy') {
+                const angle = 0.1 * i;
+                const r = 0.02 * i;
+                x = r * Math.cos(angle) + (Math.random() - 0.5);
+                y = (Math.random() - 0.5) * 0.5;
+                z = r * Math.sin(angle) + (Math.random() - 0.5);
+            } else { // Cube
+                x = (Math.random() - 0.5) * 3;
+                y = (Math.random() - 0.5) * 3;
+                z = (Math.random() - 0.5) * 3;
             }
+            targetPositions.push(new THREE.Vector3(x, y, z));
         }
     }
 
-    function createShapePoints() {
-        targets = [];
-        let centerX = width / 2;
-        let centerY = height / 2;
-        let size = 15;
+    function setupHandTracking() {
+        const videoElement = document.getElementById('input_video');
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        
+        hands.onResults((results) => {
+            document.getElementById('loading').style.display = 'none';
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const lm = results.multiHandLandmarks[0][8]; // Index finger
+                // Map 0-1 coords to Three.js scene coords
+                handPos.x = (0.5 - lm.x) * 10; 
+                handPos.y = (0.5 - lm.y) * 8;
+                handPos.z = (0.5 - lm.z) * 5;
+            }
+        });
 
-        for (let i = 0; i < numParticles; i++) {
-            let x, y;
-            let t = map(i, 0, numParticles, 0, TWO_PI);
+        const cameraFeed = new Camera(videoElement, {
+            onFrame: async () => { await hands.send({image: videoElement}); },
+            width: 480, height: 320
+        });
+        cameraFeed.start();
+    }
 
-            if (currentShape === 'heart') {
-                x = 16 * pow(sin(t), 3);
-                y = -(13 * cos(t) - 5 * cos(2 * t) - 2 * cos(3 * t) - cos(4 * t));
-            } else if (currentShape === 'star') {
-                let r = i % 2 === 0 ? 20 : 10;
-                x = r * cos(t * 2.5);
-                y = r * sin(t * 2.5);
-            } else if (currentShape === 'circle') {
-                x = 15 * cos(t);
-                y = 15 * sin(t);
-            } else if (currentShape === 'square') {
-                // simple square logic
-                if (t < PI/2) { x = 15; y = map(t, 0, PI/2, -15, 15); }
-                else if (t < PI) { x = map(t, PI/2, PI, 15, -15); y = 15; }
-                else if (t < 3*PI/2) { x = -15; y = map(t, PI, 3*PI/2, 15, -15); }
-                else { x = map(t, 3*PI/2, TWO_PI, -15, 15); y = -15; }
-            } else if (currentShape === 'cake') {
-                x = random(-15, 15);
-                y = random(-10, 10); // Placeholder block for cake
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        const positions = particleSystem.geometry.attributes.position.array;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            const currentP = new THREE.Vector3(positions[i3], positions[i3+1], positions[i3+2]);
+            const targetP = targetPositions[i];
+            
+            // 1. Move toward shape target
+            currentP.lerp(targetP, 0.05);
+
+            // 2. Hand interaction (Push/Pull)
+            const dist = currentP.distanceTo(handPos);
+            if (dist < 1.5) {
+                const force = (1.5 - dist) * 0.2;
+                const dir = currentP.clone().sub(handPos).normalize();
+                currentP.add(dir.multiplyScalar(force));
             }
 
-            targets.push(createVector(centerX + x * size, centerY + y * size));
+            positions[i3] = currentP.x;
+            positions[i3+1] = currentP.y;
+            positions[i3+2] = currentP.z;
         }
+
+        particleSystem.geometry.attributes.position.needsUpdate = true;
+        particleSystem.rotation.y += 0.002; // Subtle auto-rotate
+        
+        renderer.render(scene, camera);
     }
 
-    function setShape(shape) {
+    function changeShape(shape) {
         currentShape = shape;
-        createShapePoints();
-        document.querySelectorAll('.shape-btn').forEach(btn => btn.classList.remove('active'));
+        generateShape(shape);
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
     }
 
-    // HAND TRACKING SETUP
-    const videoElement = document.getElementById('input_video');
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-    hands.onResults((results) => {
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            let hand = results.multiHandLandmarks[0][8]; // Index finger tip
-            handX = (1 - hand.x) * width; // Mirror it
-            handY = hand.y * height;
-        }
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
-
-    const camera = new Camera(videoElement, {
-        onFrame: async () => { await hands.send({image: videoElement}); },
-        width: 1280, height: 720
-    });
-    camera.start();
-
-    function windowResized() { resizeCanvas(windowWidth, windowHeight); createShapePoints(); }
 </script>
 </body>
 </html>
-
