@@ -2,81 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosmic Birthday - Jaidaa</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #010102; font-family: 'Segoe UI', 'Raleway', sans-serif; touch-action: none; }
+        body { margin: 0; overflow: hidden; background-color: #010102; font-family: 'Segoe UI', 'Raleway', sans-serif; }
         
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 10; display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center; padding: 5vh 0;
+            justify-content: space-between; align-items: center; padding: 20px 0;
             color: white; text-align: center;
         }
 
         #wishes {
-            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
             width: 90%; text-align: center; z-index: 15;
             opacity: 0; transition: opacity 1s ease;
-            font-size: clamp(16px, 4vw, 24px); color: #00eaff;
+            font-size: clamp(16px, 4vw, 22px); letter-spacing: 0.1em; color: #00eaff;
             pointer-events: auto;
         }
-        #wishes p { margin: 5px 0; min-height: 25px; }
-        span { display: inline-block; margin: 0 2px; transition: color 0.3s; }
-        span.jump { animation: jump 0.25s ease-out 0s 2 alternate; color: #fff; text-shadow: 0 0 10px #00eaff; }
-        @keyframes jump { to { transform: translateY(-0.5em); } }
+        #wishes p { margin: 5px 0; min-height: 30px; }
+        span { display: inline-block; margin: 0 3px; transition: color 0.3s; }
+        span.jump { animation: jump 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0s 2 alternate; color: #fff; text-shadow: 0 0 10px #00eaff; }
+        @keyframes jump { to { transform: translateY(-0.7em); } }
+
+        #open-btn {
+            position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
+            padding: 12px 30px; background: rgba(0, 234, 255, 0.1); border: 1px solid #00eaff;
+            color: #00eaff; cursor: pointer; border-radius: 50px; font-weight: bold;
+            display: none; z-index: 210; transition: all 0.4s; letter-spacing: 2px;
+            white-space: nowrap; font-size: 0.9rem;
+        }
+        #open-btn:hover { background: #00eaff; color: #000; box-shadow: 0 0 30px #00eaff; transform: translate(-50%, -50%) scale(1.05); }
 
         #final-letter {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 85%; max-width: 500px; color: white; text-align: center;
-            z-index: 200; opacity: 0; display: none; transition: opacity 1.5s ease;
-            background: rgba(0, 0, 0, 0.85); padding: clamp(20px, 5vw, 40px); border-radius: 20px;
+            z-index: 250; opacity: 0; display: none; transition: opacity 2s ease;
+            background: rgba(0, 0, 0, 0.85); padding: clamp(20px, 5vw, 35px); border-radius: 20px;
             backdrop-filter: blur(15px); border: 1px solid rgba(0, 234, 255, 0.3);
-            box-shadow: 0 0 40px rgba(0, 0, 0, 1);
         }
-        #final-letter h2 { color: #00eaff; margin-bottom: 15px; font-weight: 300; letter-spacing: 3px; }
-        #final-letter p { line-height: 1.7; font-size: clamp(0.9rem, 3vw, 1.1rem); color: #e0faff; }
+        #final-letter h2 { color: #00eaff; margin-bottom: 15px; font-weight: 300; letter-spacing: 3px; font-size: 1.5rem; }
+        #final-letter p { line-height: 1.6; font-size: 1rem; color: #e0faff; }
 
-        #open-btn {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 15px 40px; background: rgba(0, 234, 255, 0.1); border: 1px solid #00eaff;
-            color: #00eaff; cursor: pointer; border-radius: 50px; font-weight: bold;
-            display: none; z-index: 210; transition: all 0.4s; letter-spacing: 2px;
+        .glow-text {
+            text-transform: uppercase; letter-spacing: 5px;
+            text-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
+            opacity: 0.7;
         }
-
-        .glow-text { text-transform: uppercase; letter-spacing: clamp(2px, 1vw, 5px); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); opacity: 0.8; }
-        #countdown { font-size: clamp(2rem, 10vw, 4rem); font-weight: bold; font-family: monospace; cursor: pointer; pointer-events: auto;}
+        #countdown { font-size: clamp(1.5rem, 8vw, 3rem); font-weight: bold; font-family: monospace; cursor: pointer; pointer-events: auto;}
 
         #hand-monitor {
-            position: absolute; bottom: 15px; right: 15px;
-            width: clamp(100px, 20vw, 150px); height: clamp(75px, 15vw, 110px); 
-            border: 1px solid rgba(0, 234, 255, 0.2);
+            position: absolute; bottom: 10px; right: 10px;
+            width: 100px; height: 75px; border: 1px solid rgba(0, 234, 255, 0.2);
             border-radius: 8px; overflow: hidden; z-index: 100;
             background: #000; transform: scaleX(-1);
         }
-        #webcam-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+        #webcam-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
         #photo-reveal {
-            position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%);
-            display: flex; gap: clamp(15px, 5vw, 50px); opacity: 0; transition: opacity 3s ease;
-            pointer-events: none; z-index: 5; justify-content: center; align-items: center;
+            position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+            display: flex; gap: clamp(10px, 3vw, 40px); opacity: 0; transition: opacity 3s ease;
+            pointer-events: none; z-index: 5; width: 90%; justify-content: center;
         }
         .photo-frame {
-            width: clamp(90px, 22vw, 180px); height: clamp(90px, 22vw, 180px);
+            width: clamp(80px, 20vw, 150px); height: clamp(80px, 20vw, 150px);
             background-size: cover; background-position: center;
-            border-radius: 12px; box-shadow: 0 0 25px rgba(0,0,0,0.9);
-            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            background-image: url('https://picsum.photos/400/400?random=1');
         }
-
-        /* Mobile specific layout change */
-        @media (max-aspect-ratio: 1/1) or (max-width: 600px) {
-            #photo-reveal { flex-direction: column; top: 68%; }
-            #wishes { top: 12%; }
-        }
+        .photo-frame:nth-child(2) { background-image: url('https://picsum.photos/400/400?random=2'); }
+        .photo-frame:nth-child(3) { background-image: url('https://picsum.photos/400/400?random=3'); }
 
         #gesture-prompt {
-            position: absolute; bottom: 140px; color: #00eaff; width: 100%; text-align: center;
-            font-size: 0.8rem; letter-spacing: 3px; opacity: 0; transition: opacity 0.5s;
+            position: absolute; bottom: 120px; color: #00eaff; 
+            font-size: 0.7rem; letter-spacing: 3px; opacity: 0;
+            transition: opacity 0.5s; width: 100%; text-align: center;
         }
     </style>
 </head>
@@ -87,6 +88,7 @@
     </div>
 
     <button id="open-btn">READ MY MESSAGE</button>
+    
     <div id="final-letter">
         <h2>To Jaidaa,</h2>
         <p>Happy Birthday to one of the best people in my life! Being friends with you is truly one of the greatest things that has ever happened to me. You make every moment brighter, and I am so grateful for our friendship. I hope your day is as incredible as you are!</p>
@@ -98,18 +100,18 @@
     <div id="ui-layer">
         <div class="glow-text">
             <h1 style="font-size: 0.8rem; margin-bottom: 0;">Happy Birthday</h1>
-            <h2 id="name-display" style="font-size: clamp(1.5rem, 8vw, 3.5rem); margin-top: 0;">JUJU</h2>
+            <h2 id="name-display" style="font-size: clamp(1.5rem, 10vw, 3rem); margin-top: 0;">JUJU</h2>
         </div>
         <div class="glow-text">
             <div id="countdown">LOADING...</div>
-            <p id="sub-text" style="font-size: 0.7rem;">UNTIL JUNE 3RD</p>
+            <p id="sub-text" style="font-size: 0.6rem;">UNTIL JUNE 3RD</p>
         </div>
     </div>
 
     <div id="photo-reveal">
-        <div class="photo-frame" style="background-image: url('https://picsum.photos/400/400?random=1');"></div>
-        <div class="photo-frame" style="background-image: url('https://picsum.photos/400/400?random=2');"></div>
-        <div class="photo-frame" style="background-image: url('https://picsum.photos/400/400?random=3');"></div>
+        <div class="photo-frame"></div>
+        <div class="photo-frame"></div>
+        <div class="photo-frame"></div>
     </div>
 
     <script type="importmap">
@@ -129,9 +131,7 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         const notes = [
             {f:262,d:.5,t:"Hap",p:p1},{f:262,d:.5,t:"py&nbsp",p:p1},{f:294,d:1,t:"Birth",p:p1},{f:262,d:1,t:"day&nbsp",p:p1},{f:349,d:1,t:"To&nbsp",p:p1},{f:330,d:2,t:"You",p:p1},
             {f:262,d:.5,t:"Hap",p:p2},{f:262,d:.5,t:"py&nbsp",p:p2},{f:294,d:1,t:"Birth",p:p2},{f:262,d:1,t:"day&nbsp",p:p2},{f:392,d:1,t:"To&nbsp;",p:p2},{f:349,d:2,t:"You",p:p2},
@@ -141,8 +141,8 @@
         let sounds = [];
 
         const CONFIG = {
-            totalParticles: isMobile ? 15000 : 25000, // Optimize for mobile performance
-            colors: { yellow: 0xcc8800, blue: 0x004499 },
+            totalParticles: 10000, 
+            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff },
             targetDate: new Date("June 3, 2026 00:00:00").getTime()
         };
 
@@ -150,21 +150,17 @@
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        
-        // Dynamic camera distance
-        function updateCameraPos() {
-            camera.position.z = window.innerWidth < 600 ? 90 : 60;
-        }
-        updateCameraPos();
+        camera.position.z = 60;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: !isMobile }); // Performance boost
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.4, 0.9));
+        const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.85);
+        composer.addPass(bloom);
 
         const geo = new THREE.BufferGeometry();
         const pos = new Float32Array(CONFIG.totalParticles * 3);
@@ -189,43 +185,23 @@
             }
         }
 
-        function setFrameTargets() {
-            const isVertical = window.innerHeight > window.innerWidth || window.innerWidth < 600;
+        function setScatterTargets() {
             const colors = geo.attributes.color.array;
-            
             for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3, frameIdx = i % 3;
-                let offsetX, offsetY;
-                
-                if(isVertical) {
-                    offsetX = 0;
-                    offsetY = (1 - frameIdx) * 26 - 5; // Stack vertically
-                } else {
-                    offsetX = (frameIdx - 1) * 25; // Line up horizontally
-                    offsetY = -12;
-                }
-
-                const side = Math.random();
-                let lx, ly;
-                const size = 10;
-                if(side < 0.25) { lx = (Math.random()-0.5)*size*2; ly = size; } 
-                else if(side < 0.5) { lx = (Math.random()-0.5)*size*2; ly = -size; }
-                else if(side < 0.75) { lx = -size; ly = (Math.random()-0.5)*size*2; }
-                else { lx = size; ly = (Math.random()-0.5)*size*2; }
-                
-                tar[i3] = offsetX + lx; 
-                tar[i3+1] = offsetY + ly; 
-                tar[i3+2] = 2;
-                colors[i3] = 0.9; colors[i3+1] = 0.9; colors[i3+2] = 0.9;
+                const i3 = i * 3;
+                tar[i3] = (Math.random() - 0.5) * 140;
+                tar[i3+1] = (Math.random() - 0.5) * 100;
+                tar[i3+2] = (Math.random() - 0.5) * 60;
+                // Make particles white
+                colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
             }
             geo.attributes.color.needsUpdate = true;
-            geo.attributes.target.needsUpdate = true;
         }
 
-        setCakeTargets();
+        setCakeTargets(); // Start as Cake
         for(let i=0; i<CONFIG.totalParticles; i++){
             const i3 = i * 3;
-            pos[i3] = (Math.random()-0.5)*150; pos[i3+1] = (Math.random()-0.5)*150; pos[i3+2] = (Math.random()-0.5)*150;
+            pos[i3] = (Math.random()-0.5)*200; pos[i3+1] = (Math.random()-0.5)*200; pos[i3+2] = (Math.random()-0.5)*200;
             const c = new THREE.Color(Math.random() < 0.5 ? CONFIG.colors.yellow : CONFIG.colors.blue);
             col[i3] = c.r; col[i3+1] = c.g; col[i3+2] = c.b;
         }
@@ -233,7 +209,7 @@
         geo.setAttribute('target', new THREE.BufferAttribute(tar, 3));
         geo.setAttribute('velocity', new THREE.BufferAttribute(vel, 3));
         geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-        const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: isMobile ? 0.4 : 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.7 }));
+        const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.28, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.6 }));
         scene.add(particleSystem);
 
         class Sound {
@@ -253,7 +229,7 @@
                 osc.onended = () => {
                     this.sp.classList.remove("jump");
                     if(this.index < sounds.length - 1) sounds[this.index + 1].play();
-                    else document.getElementById('open-btn').style.display = 'block';
+                    else { document.getElementById('open-btn').style.display = 'block'; }
                 };
             }
         }
@@ -284,9 +260,9 @@
                     runningMode: "VIDEO", numHands: 1
                 });
                 const video = document.getElementById('webcam-video');
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-                video.onloadeddata = () => {
+                video.addEventListener("loadeddata", () => {
                     const detect = () => {
                         const res = handLandmarker.detectForVideo(video, performance.now());
                         if (res.landmarks?.[0]) {
@@ -297,14 +273,16 @@
                         requestAnimationFrame(detect);
                     };
                     detect();
-                };
-            } catch(e) { console.warn("Camera init failed, using tap only mode."); }
+                });
+            } catch(e) { console.log("AI not supported or camera denied"); }
         }
         initAI();
 
         function startReveal() {
             if (appState === "REVEAL") return;
-            appState = "REVEAL"; setFrameTargets();
+            appState = "REVEAL";
+            setScatterTargets(); 
+            geo.attributes.target.needsUpdate = true;
             document.getElementById('name-display').innerText = "JAIDAA";
             document.getElementById('countdown').style.display = "none";
             document.getElementById('sub-text').style.display = "none";
@@ -318,7 +296,6 @@
         function animate() {
             requestAnimationFrame(animate);
             const p = geo.attributes.position.array, t = geo.attributes.target.array, v = geo.attributes.velocity.array;
-            
             if (isSpecialGesture && isTimerFinished && appState === "COUNTDOWN") {
                 gestureTimer += 0.02;
                 if (gestureTimer > 1.0) startReveal();
@@ -327,13 +304,11 @@
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2];
-                v[i3] *= 0.91; v[i3+1] *= 0.91; v[i3+2] *= 0.91;
-                
+                v[i3] *= 0.95; v[i3+1] *= 0.95; v[i3+2] *= 0.95;
                 const dx = p[i3] - handPos.x, dy = p[i3+1] - handPos.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 12) { v[i3] += (dx/dist) * (12-dist)*0.12; v[i3+1] += (dy/dist) * (12-dist)*0.12; }
-                
-                const s = (appState === "REVEAL") ? 0.03 : 0.045;
+                if (dist < 12) { v[i3] += (dx/dist) * (12-dist)*0.1; v[i3+1] += (dy/dist) * (12-dist)*0.1; }
+                const s = (appState === "REVEAL") ? 0.015 : 0.045; 
                 p[i3] += (t[i3] - p[i3]) * s; p[i3+1] += (t[i3+1] - p[i3+1]) * s; p[i3+2] += (t[i3+2] - p[i3+2]) * s;
             }
             geo.attributes.position.needsUpdate = true;
@@ -342,12 +317,12 @@
 
         setInterval(() => {
             const diff = CONFIG.targetDate - new Date().getTime();
-            isTimerFinished = true; // Set to true for your preview
+           // isTimerFinished = true; 
             if (diff <= 0 || isTimerFinished) {
                 isTimerFinished = true;
                 if(appState === "COUNTDOWN") {
                     document.getElementById('countdown').innerText = "READY! 🤟";
-                    document.getElementById('gesture-prompt').style.opacity = "0.6";
+                    document.getElementById('gesture-prompt').style.opacity = "0.5";
                 }
             } else {
                 const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4), s = Math.floor(diff%6e4/1e3);
@@ -357,16 +332,11 @@
 
         document.getElementById('countdown').addEventListener('click', () => { if(isTimerFinished) startReveal(); });
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            updateCameraPos();
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-            if(appState === "REVEAL") setFrameTargets(); // Re-calculate targets on resize
-        });
-
         animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
