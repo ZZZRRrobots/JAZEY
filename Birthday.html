@@ -76,9 +76,8 @@
 
         #gesture-prompt {
             position: absolute; bottom: 120px; color: #00eaff; 
-            font-size: 0.7rem; letter-spacing: 2px; opacity: 0;
+            font-size: 0.7rem; letter-spacing: 3px; opacity: 0;
             transition: opacity 0.5s; width: 100%; text-align: center;
-            background: rgba(0,0,0,0.3); padding: 5px 0;
         }
     </style>
 </head>
@@ -96,7 +95,7 @@
     </div>
 
     <div id="hand-monitor"><video id="webcam-video" autoplay playsinline muted></video></div>
-    <div id="gesture-prompt">FINGERS: 1=CAKE | 2=CANDLE | 3=15 | 4=GEMINI | 🤟=REVEAL</div>
+    <div id="gesture-prompt">SHOW 1-4 FINGERS TO CHANGE SHAPES</div>
 
     <div id="ui-layer">
         <div class="glow-text">
@@ -143,11 +142,11 @@
 
         const CONFIG = {
             totalParticles: 10000, 
-            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff, candle: 0xff8800, gemini: 0x00eaff },
+            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff },
             targetDate: new Date("June 3, 2026 00:00:00").getTime()
         };
 
-        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, currentGesture = 1;
+        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, currentShape = 1;
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -170,9 +169,8 @@
         const col = new Float32Array(CONFIG.totalParticles * 3);
 
         // --- SHAPE GENERATORS ---
-
+        
         function setCakeTargets() {
-            const colors = geo.attributes.color.array;
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 let tx, ty, tz, r = Math.random();
@@ -186,68 +184,56 @@
                     tx = (Math.random() - 0.5) * 10; ty = 4 + (Math.random() * 5); tz = (Math.random() - 0.5) * 10;
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                const c = new THREE.Color(Math.random() < 0.5 ? CONFIG.colors.yellow : CONFIG.colors.blue);
-                colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
             }
-            geo.attributes.color.needsUpdate = true;
             geo.attributes.target.needsUpdate = true;
         }
 
         function setCandleTargets() {
-            const colors = geo.attributes.color.array;
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 let tx, ty, tz;
-                if(Math.random() < 0.7) { 
-                    const rad = Math.sqrt(Math.random()) * 2.5; const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); ty = (Math.random() * 18) - 9; tz = rad * Math.sin(theta);
-                    colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
-                } else { 
-                    tx = (Math.random() - 0.5) * 5 * (1 - (Math.random())); ty = 9 + (Math.random() * 7); tz = (Math.random() - 0.5) * 5;
-                    colors[i3] = 1.0; colors[i3+1] = 0.5; colors[i3+2] = 0.0;
+                if(i < CONFIG.totalParticles * 0.8) { // Body
+                    const rad = Math.sqrt(Math.random()) * 3; const theta = Math.random() * Math.PI * 2;
+                    tx = rad * Math.cos(theta); ty = (Math.random() * 25) - 10; tz = rad * Math.sin(theta);
+                } else { // Flame
+                    tx = (Math.random() - 0.5) * (Math.random() * 4); ty = 15 + (Math.random() * 6); tz = (Math.random() - 0.5) * 2;
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
             }
-            geo.attributes.color.needsUpdate = true;
             geo.attributes.target.needsUpdate = true;
         }
 
         function set15Targets() {
-            const colors = geo.attributes.color.array;
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
-                let tx, ty, tz = (Math.random()-0.5)*3;
-                if(i < CONFIG.totalParticles * 0.3) { 
+                let tx, ty, tz = (Math.random() - 0.5) * 4;
+                if(i < CONFIG.totalParticles * 0.4) { // Number 1
                     tx = -10 + (Math.random() * 2); ty = (Math.random() * 20) - 10;
-                } else { 
+                } else { // Number 5
                     let r = Math.random();
-                    if(r < 0.2) { tx = 2 + (Math.random()*12); ty = 8 + (Math.random()*2); } 
-                    else if(r < 0.4) { tx = 2 + (Math.random()*2); ty = 0 + (Math.random()*10); } 
-                    else if(r < 0.6) { tx = 2 + (Math.random()*12); ty = 0 + (Math.random()*2); } 
-                    else if(r < 0.8) { tx = 12 + (Math.random()*2); ty = -10 + (Math.random()*10); } 
-                    else { tx = 2 + (Math.random()*12); ty = -10 + (Math.random()*2); } 
+                    if(r < 0.3) { tx = 2 + (Math.random() * 10); ty = 10; } // Top bar
+                    else if(r < 0.5) { tx = 2; ty = (Math.random() * 5) + 5; } // Vertical bar
+                    else { // Curved bottom
+                        let angle = (Math.random() * Math.PI * 1.5) - Math.PI/2;
+                        tx = 7 + Math.cos(angle) * 6; ty = -3 + Math.sin(angle) * 6;
+                    }
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                colors[i3] = 0.9; colors[i3+1] = 0.9; colors[i3+2] = 1.0;
             }
-            geo.attributes.color.needsUpdate = true;
             geo.attributes.target.needsUpdate = true;
         }
 
         function setGeminiTargets() {
-            const colors = geo.attributes.color.array;
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
-                let tx, ty, tz = (Math.random()-0.5)*4;
+                let tx, ty, tz = (Math.random() - 0.5) * 4;
                 let r = Math.random();
-                if(r < 0.3) { tx = -7 + (Math.random()*2); ty = (Math.random()*24)-12; } 
-                else if(r < 0.6) { tx = 7 + (Math.random()*2); ty = (Math.random()*24)-12; } 
-                else if(r < 0.8) { tx = (Math.random()*20)-10; ty = 12 + (Math.random()*2); } 
-                else { tx = (Math.random()*20)-10; ty = -14 + (Math.random()*2); } 
+                if(r < 0.3) { tx = -6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; } // Left Pillar
+                else if(r < 0.6) { tx = 6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; } // Right Pillar
+                else if(r < 0.8) { tx = (Math.random() * 20) - 10; ty = 12 + Math.sin(tx * 0.3) * 2; } // Top curve
+                else { tx = (Math.random() * 20) - 10; ty = -12 + Math.sin(tx * 0.3) * 2; } // Bottom curve
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                colors[i3] = 0.0; colors[i3+1] = 0.9; colors[i3+2] = 1.0;
             }
-            geo.attributes.color.needsUpdate = true;
             geo.attributes.target.needsUpdate = true;
         }
 
@@ -262,10 +248,13 @@
             geo.attributes.target.needsUpdate = true;
         }
 
+        // --- INIT THREE.JS ---
         setCakeTargets(); 
         for(let i=0; i<CONFIG.totalParticles; i++){
             const i3 = i * 3;
             pos[i3] = (Math.random()-0.5)*200; pos[i3+1] = (Math.random()-0.5)*200; pos[i3+2] = (Math.random()-0.5)*200;
+            const c = new THREE.Color(Math.random() < 0.5 ? CONFIG.colors.yellow : CONFIG.colors.blue);
+            col[i3] = c.r; col[i3+1] = c.g; col[i3+2] = c.b;
         }
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         geo.setAttribute('target', new THREE.BufferAttribute(tar, 3));
@@ -274,6 +263,7 @@
         const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.28, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.6 }));
         scene.add(particleSystem);
 
+        // --- SOUNDS ---
         class Sound {
             constructor(freq, dur, i) {
                 this.freq = freq; this.dur = dur; this.index = i;
@@ -313,6 +303,7 @@
             }, 800);
         });
 
+        // --- AI & GESTURE DETECTION ---
         let handLandmarker, handPos = new THREE.Vector3(1000, 1000, 1000);
         async function initAI() {
             try {
@@ -331,29 +322,25 @@
                             const l = res.landmarks[0];
                             handPos.set((0.5 - l[8].x) * 80, (0.5 - l[8].y) * 55, 0);
                             
-                            // Advanced Gesture Logic
-                            const isFingerUp = (tip, mid) => l[tip].y < l[mid].y;
-                            const count = [isFingerUp(8,6), isFingerUp(12,10), isFingerUp(16,14), isFingerUp(20,18)].filter(v => v).length;
-                            const isRockOn = isFingerUp(8,6) && isFingerUp(20,18) && !isFingerUp(12,10);
+                            // Finger counting logic
+                            let fingers = 0;
+                            if (l[8].y < l[6].y) fingers++;  // Index
+                            if (l[12].y < l[10].y) fingers++; // Middle
+                            if (l[16].y < l[14].y) fingers++; // Ring
+                            if (l[20].y < l[18].y) fingers++; // Pinky
 
-                            if (appState === "COUNTDOWN" && isTimerFinished) {
-                                if (isRockOn) {
-                                    gestureTimer += 0.02;
-                                    if (gestureTimer > 1.0) startReveal();
-                                } else if (count >= 1 && count <= 4 && count !== currentGesture) {
-                                    currentGesture = count;
-                                    if(count === 1) setCakeTargets();
-                                    else if(count === 2) setCandleTargets();
-                                    else if(count === 3) set15Targets();
-                                    else if(count === 4) setGeminiTargets();
-                                }
+                            if (appState === "COUNTDOWN") {
+                                if (fingers === 1 && currentShape !== 1) { setCakeTargets(); currentShape = 1; }
+                                else if (fingers === 2 && currentShape !== 2) { setCandleTargets(); currentShape = 2; }
+                                else if (fingers === 3 && currentShape !== 3) { set15Targets(); currentShape = 3; }
+                                else if (fingers === 4 && currentShape !== 4) { setGeminiTargets(); currentShape = 4; }
                             }
-                        } else { handPos.set(1000,1000,1000); }
+                        } else { handPos.set(1000, 1000, 1000); }
                         requestAnimationFrame(detect);
                     };
                     detect();
                 });
-            } catch(e) { console.log("AI not supported or camera denied"); }
+            } catch(e) { console.log("AI not supported"); }
         }
         initAI();
 
@@ -374,8 +361,25 @@
         function animate() {
             requestAnimationFrame(animate);
             const p = geo.attributes.position.array, t = geo.attributes.target.array, v = geo.attributes.velocity.array;
-            
+
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2];
-    
+                v[i3] *= 0.95; v[i3+1] *= 0.95; v[i3+2] *= 0.95;
+                const dx = p[i3] - handPos.x, dy = p[i3+1] - handPos.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 12) { v[i3] += (dx/dist) * (12-dist)*0.15; v[i3+1] += (dy/dist) * (12-dist)*0.15; }
+                const s = (appState === "REVEAL") ? 0.015 : 0.06; 
+                p[i3] += (t[i3] - p[i3]) * s; p[i3+1] += (t[i3+1] - p[i3+1]) * s; p[i3+2] += (t[i3+2] - p[i3+2]) * s;
+            }
+            geo.attributes.position.needsUpdate = true;
+            composer.render();
+        }
+
+        setInterval(() => {
+            const diff = CONFIG.targetDate - new Date().getTime();
+            if (diff <= 0 || isTimerFinished) {
+                isTimerFinished = true;
+                if(appState === "COUNTDOWN") {
+                    document.getElementById('countdown').innerText = "READY!";
+                    document.getEleme
