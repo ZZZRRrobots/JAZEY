@@ -78,7 +78,7 @@
             position: absolute; bottom: 120px; color: #00eaff; 
             font-size: 0.7rem; letter-spacing: 2px; opacity: 0;
             transition: opacity 0.5s; width: 100%; text-align: center;
-            background: rgba(0,0,0,0.4); padding: 5px 0;
+            background: rgba(0,0,0,0.3); padding: 5px 0;
         }
     </style>
 </head>
@@ -143,11 +143,11 @@
 
         const CONFIG = {
             totalParticles: 10000, 
-            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff, candle: 0xffaa00, gemini: 0x00eaff },
+            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff, candle: 0xff8800, gemini: 0x00eaff },
             targetDate: new Date("June 3, 2026 00:00:00").getTime()
         };
 
-        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, currentGesture = 0;
+        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, currentGesture = 1;
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -169,7 +169,7 @@
         const vel = new Float32Array(CONFIG.totalParticles * 3);
         const col = new Float32Array(CONFIG.totalParticles * 3);
 
-        // --- PARTICLE SHAPE GENERATORS ---
+        // --- SHAPE GENERATORS ---
 
         function setCakeTargets() {
             const colors = geo.attributes.color.array;
@@ -198,14 +198,15 @@
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 let tx, ty, tz;
-                if(Math.random() < 0.8) { // Candle body
-                    const rad = Math.sqrt(Math.random()) * 3; const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); ty = (Math.random() * 20) - 10; tz = rad * Math.sin(theta);
-                } else { // Flame
-                    tx = (Math.random() - 0.5) * 4 * (1 - (Math.random())); ty = 10 + (Math.random() * 8); tz = (Math.random() - 0.5) * 4;
+                if(Math.random() < 0.7) { 
+                    const rad = Math.sqrt(Math.random()) * 2.5; const theta = Math.random() * Math.PI * 2;
+                    tx = rad * Math.cos(theta); ty = (Math.random() * 18) - 9; tz = rad * Math.sin(theta);
+                    colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
+                } else { 
+                    tx = (Math.random() - 0.5) * 5 * (1 - (Math.random())); ty = 9 + (Math.random() * 7); tz = (Math.random() - 0.5) * 5;
+                    colors[i3] = 1.0; colors[i3+1] = 0.5; colors[i3+2] = 0.0;
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                colors[i3] = 1.0; colors[i3+1] = 0.6; colors[i3+2] = 0.2;
             }
             geo.attributes.color.needsUpdate = true;
             geo.attributes.target.needsUpdate = true;
@@ -215,19 +216,19 @@
             const colors = geo.attributes.color.array;
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
-                let tx, ty, tz = (Math.random()-0.5)*2;
-                if(i < CONFIG.totalParticles/2) { // The '1'
+                let tx, ty, tz = (Math.random()-0.5)*3;
+                if(i < CONFIG.totalParticles * 0.3) { 
                     tx = -10 + (Math.random() * 2); ty = (Math.random() * 20) - 10;
-                } else { // The '5' (simplified blocky)
+                } else { 
                     let r = Math.random();
-                    if(r < 0.3) { tx = 2 + (Math.random()*12); ty = 8 + (Math.random()*2); } // Top
-                    else if(r < 0.5) { tx = 2 + (Math.random()*2); ty = 0 + (Math.random()*10); } // Upper left
-                    else if(r < 0.7) { tx = 2 + (Math.random()*12); ty = 0 + (Math.random()*2); } // Middle
-                    else if(r < 0.9) { tx = 12 + (Math.random()*2); ty = -10 + (Math.random()*10); } // Lower right
-                    else { tx = 2 + (Math.random()*12); ty = -10 + (Math.random()*2); } // Bottom
+                    if(r < 0.2) { tx = 2 + (Math.random()*12); ty = 8 + (Math.random()*2); } 
+                    else if(r < 0.4) { tx = 2 + (Math.random()*2); ty = 0 + (Math.random()*10); } 
+                    else if(r < 0.6) { tx = 2 + (Math.random()*12); ty = 0 + (Math.random()*2); } 
+                    else if(r < 0.8) { tx = 12 + (Math.random()*2); ty = -10 + (Math.random()*10); } 
+                    else { tx = 2 + (Math.random()*12); ty = -10 + (Math.random()*2); } 
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
+                colors[i3] = 0.9; colors[i3+1] = 0.9; colors[i3+2] = 1.0;
             }
             geo.attributes.color.needsUpdate = true;
             geo.attributes.target.needsUpdate = true;
@@ -237,12 +238,12 @@
             const colors = geo.attributes.color.array;
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
-                let tx, ty, tz = (Math.random()-0.5)*3;
+                let tx, ty, tz = (Math.random()-0.5)*4;
                 let r = Math.random();
-                if(r < 0.35) { tx = -6 + (Math.random()*2); ty = (Math.random()*24)-12; } // Left pillar
-                else if(r < 0.7) { tx = 6 + (Math.random()*2); ty = (Math.random()*24)-12; } // Right pillar
-                else if(r < 0.85) { tx = (Math.random()*20)-10; ty = 12 + (Math.random()*2); } // Top curve
-                else { tx = (Math.random()*20)-10; ty = -14 + (Math.random()*2); } // Bottom curve
+                if(r < 0.3) { tx = -7 + (Math.random()*2); ty = (Math.random()*24)-12; } 
+                else if(r < 0.6) { tx = 7 + (Math.random()*2); ty = (Math.random()*24)-12; } 
+                else if(r < 0.8) { tx = (Math.random()*20)-10; ty = 12 + (Math.random()*2); } 
+                else { tx = (Math.random()*20)-10; ty = -14 + (Math.random()*2); } 
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
                 colors[i3] = 0.0; colors[i3+1] = 0.9; colors[i3+2] = 1.0;
             }
@@ -261,7 +262,6 @@
             geo.attributes.target.needsUpdate = true;
         }
 
-        // Initialize particles
         setCakeTargets(); 
         for(let i=0; i<CONFIG.totalParticles; i++){
             const i3 = i * 3;
@@ -331,20 +331,21 @@
                             const l = res.landmarks[0];
                             handPos.set((0.5 - l[8].x) * 80, (0.5 - l[8].y) * 55, 0);
                             
-                            // Finger Counting Logic
-                            const fingers = [8, 12, 16, 20].filter(tip => l[tip].y < l[tip-2].y).length;
-                            const isRockOn = l[8].y < l[6].y && l[20].y < l[18].y && l[12].y > l[9].y;
+                            // Advanced Gesture Logic
+                            const isFingerUp = (tip, mid) => l[tip].y < l[mid].y;
+                            const count = [isFingerUp(8,6), isFingerUp(12,10), isFingerUp(16,14), isFingerUp(20,18)].filter(v => v).length;
+                            const isRockOn = isFingerUp(8,6) && isFingerUp(20,18) && !isFingerUp(12,10);
 
-                            if (appState === "COUNTDOWN") {
-                                if (isRockOn && isTimerFinished) {
+                            if (appState === "COUNTDOWN" && isTimerFinished) {
+                                if (isRockOn) {
                                     gestureTimer += 0.02;
                                     if (gestureTimer > 1.0) startReveal();
-                                } else if (fingers > 0 && fingers <= 4 && fingers !== currentGesture) {
-                                    currentGesture = fingers;
-                                    if(fingers === 1) setCakeTargets();
-                                    if(fingers === 2) setCandleTargets();
-                                    if(fingers === 3) set15Targets();
-                                    if(fingers === 4) setGeminiTargets();
+                                } else if (count >= 1 && count <= 4 && count !== currentGesture) {
+                                    currentGesture = count;
+                                    if(count === 1) setCakeTargets();
+                                    else if(count === 2) setCandleTargets();
+                                    else if(count === 3) set15Targets();
+                                    else if(count === 4) setGeminiTargets();
                                 }
                             }
                         } else { handPos.set(1000,1000,1000); }
@@ -376,4 +377,5 @@
             
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
-                p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2]
+                p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2];
+    
