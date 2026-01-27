@@ -5,379 +5,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosmic Birthday - Jaidaa</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #010102; font-family: 'Segoe UI', 'Raleway', sans-serif; }
-        
+        body { margin: 0; overflow: hidden; background-color: #010102; font-family: 'Segoe UI', sans-serif; }
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 10; display: flex; flex-direction: column;
             justify-content: space-between; align-items: center; padding: 20px 0;
             color: white; text-align: center;
         }
-
         #wishes {
             position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
-            width: 90%; text-align: center; z-index: 15;
-            opacity: 0; transition: opacity 1s ease;
-            font-size: clamp(16px, 4vw, 22px); letter-spacing: 0.1em; color: #00eaff;
-            pointer-events: auto;
+            width: 90%; text-align: center; z-index: 15; opacity: 0; transition: opacity 1s;
+            font-size: clamp(16px, 4vw, 22px); color: #00eaff; pointer-events: auto;
         }
-        #wishes p { margin: 5px 0; min-height: 30px; }
-        span { display: inline-block; margin: 0 3px; transition: color 0.3s; }
-        span.jump { animation: jump 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0s 2 alternate; color: #fff; text-shadow: 0 0 10px #00eaff; }
+        span.jump { animation: jump 0.25s 2 alternate; color: #fff; text-shadow: 0 0 10px #00eaff; display: inline-block; }
         @keyframes jump { to { transform: translateY(-0.7em); } }
-
+        
         #open-btn {
             position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
             padding: 12px 30px; background: rgba(0, 234, 255, 0.1); border: 1px solid #00eaff;
-            color: #00eaff; cursor: pointer; border-radius: 50px; font-weight: bold;
-            display: none; z-index: 210; transition: all 0.4s; letter-spacing: 2px;
-            white-space: nowrap; font-size: 0.9rem;
+            color: #00eaff; cursor: pointer; border-radius: 50px; display: none; z-index: 210;
         }
-        #open-btn:hover { background: #00eaff; color: #000; box-shadow: 0 0 30px #00eaff; transform: translate(-50%, -50%) scale(1.05); }
-
         #final-letter {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 85%; max-width: 500px; color: white; text-align: center;
-            z-index: 250; opacity: 0; display: none; transition: opacity 2s ease;
-            background: rgba(0, 0, 0, 0.85); padding: clamp(20px, 5vw, 35px); border-radius: 20px;
-            backdrop-filter: blur(15px); border: 1px solid rgba(0, 234, 255, 0.3);
+            z-index: 250; opacity: 0; display: none; transition: opacity 2s;
+            background: rgba(0, 0, 0, 0.9); padding: 30px; border-radius: 20px;
+            backdrop-filter: blur(15px); border: 1px solid #00eaff;
         }
-        #final-letter h2 { color: #00eaff; margin-bottom: 15px; font-weight: 300; letter-spacing: 3px; font-size: 1.5rem; }
-        #final-letter p { line-height: 1.6; font-size: 1rem; color: #e0faff; }
-
-        .glow-text {
-            text-transform: uppercase; letter-spacing: 5px;
-            text-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
-            opacity: 0.7;
-        }
-        #countdown { font-size: clamp(1.5rem, 8vw, 3rem); font-weight: bold; font-family: monospace; cursor: pointer; pointer-events: auto;}
-
-        #hand-monitor {
-            position: absolute; bottom: 10px; right: 10px;
-            width: 100px; height: 75px; border: 1px solid rgba(0, 234, 255, 0.2);
-            border-radius: 8px; overflow: hidden; z-index: 100;
-            background: #000; transform: scaleX(-1);
-        }
+        #countdown { font-size: clamp(1.5rem, 8vw, 3rem); font-weight: bold; cursor: pointer; pointer-events: auto; }
+        #hand-monitor { position: absolute; bottom: 10px; right: 10px; width: 100px; height: 75px; border: 1px solid #00eaff; border-radius: 8px; overflow: hidden; background: #000; transform: scaleX(-1); }
         #webcam-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
-
-        #gesture-prompt {
-            position: absolute; bottom: 120px; color: #00eaff; 
-            font-size: 0.7rem; letter-spacing: 3px; opacity: 0;
-            transition: opacity 0.5s; width: 100%; text-align: center;
-        }
-        
-        #photo-reveal {
-            position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
-            display: flex; gap: clamp(10px, 3vw, 40px); opacity: 0; transition: opacity 3s ease;
-            pointer-events: none; z-index: 5; width: 90%; justify-content: center;
-        }
-        .photo-frame {
-            width: clamp(80px, 20vw, 150px); height: clamp(80px, 20vw, 150px);
-            background-size: cover; background-position: center;
-            border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            background-image: url('https://picsum.photos/400/400?random=1');
-        }
+        #gesture-prompt { position: absolute; bottom: 120px; color: #00eaff; font-size: 0.7rem; width: 100%; text-align: center; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div id="wishes">
-        <p id="p1"></p><p id="p2"></p><p id="p3"></p><p id="p4"></p>
-    </div>
-
+    <div id="wishes"><p id="p1"></p><p id="p2"></p><p id="p3"></p><p id="p4"></p></div>
     <button id="open-btn">READ MY MESSAGE</button>
-    
     <div id="final-letter">
         <h2>To Jaidaa,</h2>
-        <p>Happy Birthday to one of the best people in my life! Being friends with you is truly one of the greatest things that has ever happened to me. You make every moment brighter, and I am so grateful for our friendship. I hope your day is as incredible as you are!</p>
+        <p>Happy Birthday! You make every moment brighter, and I am so grateful for our friendship. I hope your day is as incredible as you are!</p>
     </div>
 
     <div id="hand-monitor"><video id="webcam-video" autoplay playsinline muted></video></div>
-    <div id="gesture-prompt">SHOW 1-4 FINGERS TO TRANSFORM</div>
+    <div id="gesture-prompt">USE GESTURES 1-4 OR KEYS 1-4</div>
 
     <div id="ui-layer">
-        <div class="glow-text">
-            <h1 style="font-size: 0.8rem; margin-bottom: 0;">Happy Birthday</h1>
-            <h2 id="name-display" style="font-size: clamp(1.5rem, 10vw, 3rem); margin-top: 0;">JUJU</h2>
-        </div>
-        <div class="glow-text">
-            <div id="countdown">INITIALIZING...</div>
-            <p id="sub-text" style="font-size: 0.6rem;">UNTIL JUNE 3RD</p>
-        </div>
+        <div><h1 style="font-size: 0.8rem;">Happy Birthday</h1><h2 id="name-display" style="font-size: 3rem;">JUJU</h2></div>
+        <div><div id="countdown">STARTING...</div></div>
     </div>
-
-    <div id="photo-reveal">
-        <div class="photo-frame"></div>
-        <div class="photo-frame"></div>
-        <div class="photo-frame"></div>
-    </div>
-
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-            "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm"
-        }
-    }
-    </script>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+        import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+        import { EffectComposer } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const notes = [
-            {f:262,d:.5,t:"Hap",p:p1},{f:262,d:.5,t:"py&nbsp",p:p1},{f:294,d:1,t:"Birth",p:p1},{f:262,d:1,t:"day&nbsp",p:p1},{f:349,d:1,t:"To&nbsp",p:p1},{f:330,d:2,t:"You",p:p1},
-            {f:262,d:.5,t:"Hap",p:p2},{f:262,d:.5,t:"py&nbsp",p:p2},{f:294,d:1,t:"Birth",p:p2},{f:262,d:1,t:"day&nbsp",p:p2},{f:392,d:1,t:"To&nbsp;",p:p2},{f:349,d:2,t:"You",p:p2},
-            {f:262,d:.5,t:"Hap",p:p3},{f:262,d:.5,t:"py&nbsp;",p:p3},{f:523,d:1,t:"Birth",p:p3},{f:440,d:1,t:"day&nbsp;",p:p3},{f:349,d:1,t:"Dear&nbsp;",p:p3},{f:330,d:1,t:"Jai",p:p3},{f:294,d:3,t:"daa",p:p3},
-            {f:466,d:.5,t:"Hap",p:p4},{f:466,d:.5,t:"py&nbsp;",p:p4},{f:440,d:1,t:"Birth",p:p4},{f:349,d:1,t:"day&nbsp;",p:p4},{f:392,d:1,t:"To&nbsp;",p:p4},{f:349,d:2,t:"You",p:p4}
-        ];
-        let sounds = [];
+        const CONFIG = { total: 8000, targetDate: new Date("June 3, 2026").getTime() };
+        let appState = "COUNTDOWN", currentShape = 1;
 
-        const CONFIG = {
-            totalParticles: 8000, 
-            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff },
-            targetDate: new Date("June 3, 2026 00:00:00").getTime()
-        };
-
-        let appState = "COUNTDOWN", isTimerFinished = false, currentShape = 1;
-
+        // --- THREE JS SETUP ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera.position.z = 60;
-
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.85);
-        composer.addPass(bloom);
+        composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85));
 
         const geo = new THREE.BufferGeometry();
-        const pos = new Float32Array(CONFIG.totalParticles * 3);
-        const tar = new Float32Array(CONFIG.totalParticles * 3);
-        const vel = new Float32Array(CONFIG.totalParticles * 3);
-        const col = new Float32Array(CONFIG.totalParticles * 3);
+        const pos = new Float32Array(CONFIG.total * 3);
+        const tar = new Float32Array(CONFIG.total * 3);
+        const vel = new Float32Array(CONFIG.total * 3);
+        const col = new Float32Array(CONFIG.total * 3);
 
-        // --- PARTICLE SHAPES ---
-        function setCakeTargets() {
-            for(let i=0; i<CONFIG.totalParticles; i++) {
+        function updateTargets(shape) {
+            currentShape = shape;
+            for(let i=0; i<CONFIG.total; i++) {
                 const i3 = i * 3;
-                let tx, ty, tz, r = Math.random();
-                if(r < 0.6) {
-                    const rad = Math.sqrt(Math.random()) * 11; const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); ty = (Math.random() * 7) - 9; tz = rad * Math.sin(theta);
-                } else {
-                    tx = (Math.random() - 0.5) * 10; ty = 4 + (Math.random() * 5); tz = (Math.random() - 0.5) * 10;
-                }
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-            }
-            geo.attributes.target.needsUpdate = true;
-        }
-
-        function setCandleTargets() {
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz;
-                if(i < CONFIG.totalParticles * 0.8) {
-                    const rad = Math.sqrt(Math.random()) * 3; const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); ty = (Math.random() * 25) - 10; tz = rad * Math.sin(theta);
-                } else {
-                    tx = (Math.random() - 0.5) * 4; ty = 15 + (Math.random() * 6); tz = (Math.random() - 0.5) * 2;
-                }
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-            }
-            geo.attributes.target.needsUpdate = true;
-        }
-
-        function set15Targets() {
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz = (Math.random() - 0.5) * 4;
-                if(i < CONFIG.totalParticles * 0.4) {
-                    tx = -10 + (Math.random() * 2); ty = (Math.random() * 20) - 10;
-                } else {
+                let tx, ty, tz = (Math.random()-0.5)*5;
+                if(shape === 1) { // Cake
                     let r = Math.random();
-                    if(r < 0.3) { tx = 2 + (Math.random() * 10); ty = 10; }
-                    else if(r < 0.5) { tx = 2; ty = (Math.random() * 5) + 5; }
-                    else {
-                        let angle = (Math.random() * Math.PI * 1.5) - Math.PI/2;
-                        tx = 7 + Math.cos(angle) * 6; ty = -3 + Math.sin(angle) * 6;
-                    }
+                    if(r < 0.7) { const rad = Math.sqrt(Math.random())*12; const ang = Math.random()*Math.PI*2; tx = rad*Math.cos(ang); ty = (Math.random()*8)-10; }
+                    else { tx = (Math.random()-0.5)*8; ty = (Math.random()*6)+2; }
+                } else if(shape === 2) { // Candle
+                    if(i < CONFIG.total*0.8) { tx = (Math.random()-0.5)*5; ty = (Math.random()*25)-10; }
+                    else { tx = (Math.random()-0.5)*3; ty = 16+(Math.random()*5); }
+                } else if(shape === 3) { // 15
+                    if(i < CONFIG.total*0.4) { tx = -8; ty = (Math.random()*20)-10; }
+                    else { let ang = (Math.random()*Math.PI*1.5)-Math.PI/2; tx = 5+Math.cos(ang)*7; ty = -2+Math.sin(ang)*7; }
+                } else { // Gemini
+                    let r = Math.random();
+                    if(r < 0.4) { tx = (i%2==0 ? -7 : 7); ty = (Math.random()*24)-12; }
+                    else { tx = (Math.random()*20)-10; ty = (r > 0.7 ? 14 : -14); }
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
             }
-            geo.attributes.target.needsUpdate = true;
         }
 
-        function setGeminiTargets() {
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz = (Math.random() - 0.5) * 4;
-                let r = Math.random();
-                if(r < 0.3) { tx = -6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; }
-                else if(r < 0.6) { tx = 6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; }
-                else if(r < 0.8) { tx = (Math.random() * 20) - 10; ty = 12 + Math.sin(tx * 0.3) * 2; }
-                else { tx = (Math.random() * 20) - 10; ty = -12 + Math.sin(tx * 0.3) * 2; }
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-            }
-            geo.attributes.target.needsUpdate = true;
-        }
-
-        function setScatterTargets() {
-            const colors = geo.attributes.color.array;
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                tar[i3] = (Math.random() - 0.5) * 140; tar[i3+1] = (Math.random() - 0.5) * 100; tar[i3+2] = (Math.random() - 0.5) * 60;
-                colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
-            }
-            geo.attributes.color.needsUpdate = true;
-            geo.attributes.target.needsUpdate = true;
-        }
-
-        setCakeTargets(); 
-        for(let i=0; i<CONFIG.totalParticles; i++){
-            const i3 = i * 3;
-            pos[i3] = (Math.random()-0.5)*200; pos[i3+1] = (Math.random()-0.5)*200; pos[i3+2] = (Math.random()-0.5)*200;
-            const c = new THREE.Color(Math.random() < 0.5 ? CONFIG.colors.yellow : CONFIG.colors.blue);
-            col[i3] = c.r; col[i3+1] = c.g; col[i3+2] = c.b;
-        }
+        updateTargets(1);
+        for(let i=0; i<CONFIG.total*3; i++) { pos[i] = (Math.random()-0.5)*200; col[i] = Math.random(); }
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         geo.setAttribute('target', new THREE.BufferAttribute(tar, 3));
         geo.setAttribute('velocity', new THREE.BufferAttribute(vel, 3));
         geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-        const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.28, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.6 }));
-        scene.add(particleSystem);
+        scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending })));
 
-        // --- AUDIO ---
-        notes.forEach((n, i) => {
-            n.sp = document.createElement("span"); n.sp.innerHTML = n.t;
-            n.p.appendChild(n.sp);
-            sounds.push({f: n.f, d: n.d, sp: n.sp});
-        });
-
-        function playSong(idx = 0) {
-            if (idx >= sounds.length) { document.getElementById('open-btn').style.display = 'block'; return; }
-            const s = sounds[idx];
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = "triangle"; osc.frequency.value = s.f;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (s.d * 0.4));
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            s.sp.classList.add("jump");
-            osc.start();
-            osc.stop(audioCtx.currentTime + (s.d * 0.4));
-            osc.onended = () => { s.sp.classList.remove("jump"); playSong(idx + 1); };
-        }
-
-        // --- AI (ROBUST) ---
-        let handLandmarker, handPos = new THREE.Vector3(1000, 1000, 1000);
-        async function initAI() {
+        // --- HAND DETECTION (MEDIA PIPE) ---
+        let handPos = new THREE.Vector3(1000,1000,1000);
+        async function loadAI() {
             try {
-                const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm");
-                handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                const { FilesetResolver, HandLandmarker } = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm");
+                const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");
+                const handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task" },
-                    runningMode: "VIDEO", numHands: 1
+                    runningMode: "VIDEO"
                 });
                 const video = document.getElementById('webcam-video');
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
                 video.onloadeddata = () => {
-                    const detect = () => {
+                    const run = () => {
                         const res = handLandmarker.detectForVideo(video, performance.now());
-                        if (res.landmarks?.[0]) {
+                        if(res.landmarks?.[0]) {
                             const l = res.landmarks[0];
-                            handPos.set((0.5 - l[8].x) * 80, (0.5 - l[8].y) * 55, 0);
+                            handPos.set((0.5-l[8].x)*80, (0.5-l[8].y)*55, 0);
                             let f = 0;
                             if(l[8].y < l[6].y) f++; if(l[12].y < l[10].y) f++; if(l[16].y < l[14].y) f++; if(l[20].y < l[18].y) f++;
-                            if(appState === "COUNTDOWN"){
-                                if(f===1 && currentShape!==1){ setCakeTargets(); currentShape=1; }
-                                else if(f===2 && currentShape!==2){ setCandleTargets(); currentShape=2; }
-                                else if(f===3 && currentShape!==3){ set15Targets(); currentShape=3; }
-                                else if(f===4 && currentShape!==4){ setGeminiTargets(); currentShape=4; }
-                            }
-                        } else { handPos.set(1000, 1000, 1000); }
-                        requestAnimationFrame(detect);
+                            if(f > 0 && f <= 4 && f !== currentShape) updateTargets(f);
+                        }
+                        requestAnimationFrame(run);
                     };
-                    detect();
+                    run();
                 };
-            } catch(e) { 
-                console.error("Camera/AI Failed:", e); 
-                document.getElementById('gesture-prompt').innerText = "CAMERA NOT AVAILABLE - USE TIMER";
-            }
+            } catch(e) { console.log("AI Fallback to Keys"); }
         }
-        initAI();
+        loadAI();
 
-        function startReveal() {
-            if (appState === "REVEAL") return;
-            appState = "REVEAL";
-            setScatterTargets(); 
-            document.getElementById('name-display').innerText = "JAIDAA";
-            document.getElementById('countdown').style.display = "none";
-            document.getElementById('sub-text').style.display = "none";
-            document.getElementById('gesture-prompt').style.opacity = "0";
-            document.getElementById('photo-reveal').style.opacity = "1";
-            document.getElementById('wishes').style.opacity = "1";
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            playSong();
-        }
+        // --- FALLBACK KEYS ---
+        window.addEventListener('keydown', (e) => {
+            if(["1","2","3","4"].includes(e.key)) updateTargets(parseInt(e.key));
+        });
 
+        // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             const p = geo.attributes.position.array, t = geo.attributes.target.array, v = geo.attributes.velocity.array;
-            for(let i=0; i<CONFIG.totalParticles; i++) {
+            for(let i=0; i<CONFIG.total; i++) {
                 const i3 = i * 3;
                 p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2];
-                v[i3] *= 0.94; v[i3+1] *= 0.94; v[i3+2] *= 0.94;
-                const dx = p[i3] - handPos.x, dy = p[i3+1] - handPos.y;
+                v[i3] *= 0.9; v[i3+1] *= 0.9; v[i3+2] *= 0.9;
+                const dx = p[i3]-handPos.x, dy = p[i3+1]-handPos.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 12) { v[i3] += (dx/dist) * (12-dist)*0.18; v[i3+1] += (dy/dist) * (12-dist)*0.18; }
-                const s = (appState === "REVEAL") ? 0.012 : 0.06; 
-                p[i3] += (t[i3] - p[i3]) * s; p[i3+1] += (t[i3+1] - p[i3+1]) * s; p[i3+2] += (t[i3+2] - p[i3+2]) * s;
+                if(dist < 10) { v[i3] += (dx/dist)*0.5; v[i3+1] += (dy/dist)*0.5; }
+                const s = 0.08;
+                p[i3] += (t[i3]-p[i3])*s; p[i3+1] += (t[i3+1]-p[i3+1])*s; p[i3+2] += (t[i3+2]-p[i3+2])*s;
             }
             geo.attributes.position.needsUpdate = true;
             composer.render();
         }
+        animate();
 
+        // --- COUNTDOWN ---
         setInterval(() => {
-            const diff = CONFIG.targetDate - new Date().getTime();
-            if (diff <= 0 || isTimerFinished) {
-                isTimerFinished = true;
-                if(appState === "COUNTDOWN") {
-                    document.getElementById('countdown').innerText = "READY!";
-                    document.getElementById('gesture-prompt').style.opacity = "0.7";
-                }
-            } else {
-                const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4), s = Math.floor(diff%6e4/1e3);
-                document.getElementById('countdown').innerText = `${d}:${h}:${m}:${s}`;
-            }
+            const diff = CONFIG.targetDate - Date.now();
+            const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4), s = Math.floor(diff%6e4/1e3);
+            document.getElementById('countdown').innerText = diff > 0 ? `${d}:${h}:${m}:${s}` : "READY!";
         }, 1000);
 
-        document.getElementById('countdown').addEventListener('click', startReveal);
-        document.getElementById('open-btn').addEventListener('click', () => {
-            document.getElementById('open-btn').style.display = 'none';
-            document.getElementById('wishes').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('wishes').style.display = 'none';
-                const letter = document.getElementById('final-letter');
-                letter.style.display = 'block';
-                setTimeout(() => letter.style.opacity = '1', 50);
-            }, 800);
-        });
+        // --- FINAL REVEAL ---
+        document.getElementById('countdown').onclick = () => {
+            appState = "REVEAL";
+            document.getElementById('ui-layer').style.display = "none";
+            document.getElementById('wishes').style.opacity = "1";
+            document.getElementById('open-btn').style.display = "block";
+            // Set random scatter
+            for(let i=0; i<CONFIG.total*3; i++) tar[i] = (Math.random()-0.5)*150;
+        };
 
-        animate();
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
-        });
+        document.getElementById('open-btn').onclick = () => {
+            document.getElementById('final-letter').style.display = "block";
+            setTimeout(() => document.getElementById('final-letter').style.opacity = "1", 100);
+        };
     </script>
 </body>
 </html>
