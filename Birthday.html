@@ -60,6 +60,12 @@
         }
         #webcam-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
+        #gesture-prompt {
+            position: absolute; bottom: 120px; color: #00eaff; 
+            font-size: 0.7rem; letter-spacing: 3px; opacity: 0;
+            transition: opacity 0.5s; width: 100%; text-align: center;
+        }
+        
         #photo-reveal {
             position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
             display: flex; gap: clamp(10px, 3vw, 40px); opacity: 0; transition: opacity 3s ease;
@@ -70,14 +76,6 @@
             background-size: cover; background-position: center;
             border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
             background-image: url('https://picsum.photos/400/400?random=1');
-        }
-        .photo-frame:nth-child(2) { background-image: url('https://picsum.photos/400/400?random=2'); }
-        .photo-frame:nth-child(3) { background-image: url('https://picsum.photos/400/400?random=3'); }
-
-        #gesture-prompt {
-            position: absolute; bottom: 120px; color: #00eaff; 
-            font-size: 0.7rem; letter-spacing: 3px; opacity: 0;
-            transition: opacity 0.5s; width: 100%; text-align: center;
         }
     </style>
 </head>
@@ -95,7 +93,7 @@
     </div>
 
     <div id="hand-monitor"><video id="webcam-video" autoplay playsinline muted></video></div>
-    <div id="gesture-prompt">SHOW 1-4 FINGERS TO CHANGE SHAPES</div>
+    <div id="gesture-prompt">SHOW 1-4 FINGERS TO TRANSFORM</div>
 
     <div id="ui-layer">
         <div class="glow-text">
@@ -103,7 +101,7 @@
             <h2 id="name-display" style="font-size: clamp(1.5rem, 10vw, 3rem); margin-top: 0;">JUJU</h2>
         </div>
         <div class="glow-text">
-            <div id="countdown">LOADING...</div>
+            <div id="countdown">INITIALIZING...</div>
             <p id="sub-text" style="font-size: 0.6rem;">UNTIL JUNE 3RD</p>
         </div>
     </div>
@@ -141,12 +139,12 @@
         let sounds = [];
 
         const CONFIG = {
-            totalParticles: 10000, 
+            totalParticles: 8000, 
             colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff },
             targetDate: new Date("June 3, 2026 00:00:00").getTime()
         };
 
-        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, currentShape = 1;
+        let appState = "COUNTDOWN", isTimerFinished = false, currentShape = 1;
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -168,8 +166,7 @@
         const vel = new Float32Array(CONFIG.totalParticles * 3);
         const col = new Float32Array(CONFIG.totalParticles * 3);
 
-        // --- SHAPE GENERATORS ---
-        
+        // --- PARTICLE SHAPES ---
         function setCakeTargets() {
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
@@ -177,9 +174,6 @@
                 if(r < 0.6) {
                     const rad = Math.sqrt(Math.random()) * 11; const theta = Math.random() * Math.PI * 2;
                     tx = rad * Math.cos(theta); ty = (Math.random() * 7) - 9; tz = rad * Math.sin(theta);
-                } else if (r < 0.9) {
-                    const rad = Math.sqrt(Math.random()) * 7; const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); ty = (Math.random() * 6) - 2; tz = rad * Math.sin(theta);
                 } else {
                     tx = (Math.random() - 0.5) * 10; ty = 4 + (Math.random() * 5); tz = (Math.random() - 0.5) * 10;
                 }
@@ -192,11 +186,11 @@
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 let tx, ty, tz;
-                if(i < CONFIG.totalParticles * 0.8) { // Body
+                if(i < CONFIG.totalParticles * 0.8) {
                     const rad = Math.sqrt(Math.random()) * 3; const theta = Math.random() * Math.PI * 2;
                     tx = rad * Math.cos(theta); ty = (Math.random() * 25) - 10; tz = rad * Math.sin(theta);
-                } else { // Flame
-                    tx = (Math.random() - 0.5) * (Math.random() * 4); ty = 15 + (Math.random() * 6); tz = (Math.random() - 0.5) * 2;
+                } else {
+                    tx = (Math.random() - 0.5) * 4; ty = 15 + (Math.random() * 6); tz = (Math.random() - 0.5) * 2;
                 }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
             }
@@ -207,13 +201,13 @@
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 let tx, ty, tz = (Math.random() - 0.5) * 4;
-                if(i < CONFIG.totalParticles * 0.4) { // Number 1
+                if(i < CONFIG.totalParticles * 0.4) {
                     tx = -10 + (Math.random() * 2); ty = (Math.random() * 20) - 10;
-                } else { // Number 5
+                } else {
                     let r = Math.random();
-                    if(r < 0.3) { tx = 2 + (Math.random() * 10); ty = 10; } // Top bar
-                    else if(r < 0.5) { tx = 2; ty = (Math.random() * 5) + 5; } // Vertical bar
-                    else { // Curved bottom
+                    if(r < 0.3) { tx = 2 + (Math.random() * 10); ty = 10; }
+                    else if(r < 0.5) { tx = 2; ty = (Math.random() * 5) + 5; }
+                    else {
                         let angle = (Math.random() * Math.PI * 1.5) - Math.PI/2;
                         tx = 7 + Math.cos(angle) * 6; ty = -3 + Math.sin(angle) * 6;
                     }
@@ -228,10 +222,10 @@
                 const i3 = i * 3;
                 let tx, ty, tz = (Math.random() - 0.5) * 4;
                 let r = Math.random();
-                if(r < 0.3) { tx = -6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; } // Left Pillar
-                else if(r < 0.6) { tx = 6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; } // Right Pillar
-                else if(r < 0.8) { tx = (Math.random() * 20) - 10; ty = 12 + Math.sin(tx * 0.3) * 2; } // Top curve
-                else { tx = (Math.random() * 20) - 10; ty = -12 + Math.sin(tx * 0.3) * 2; } // Bottom curve
+                if(r < 0.3) { tx = -6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; }
+                else if(r < 0.6) { tx = 6 + (Math.random() * 2); ty = (Math.random() * 20) - 10; }
+                else if(r < 0.8) { tx = (Math.random() * 20) - 10; ty = 12 + Math.sin(tx * 0.3) * 2; }
+                else { tx = (Math.random() * 20) - 10; ty = -12 + Math.sin(tx * 0.3) * 2; }
                 tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
             }
             geo.attributes.target.needsUpdate = true;
@@ -248,7 +242,6 @@
             geo.attributes.target.needsUpdate = true;
         }
 
-        // --- INIT THREE.JS ---
         setCakeTargets(); 
         for(let i=0; i<CONFIG.totalParticles; i++){
             const i3 = i * 3;
@@ -263,84 +256,63 @@
         const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.28, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.6 }));
         scene.add(particleSystem);
 
-        // --- SOUNDS ---
-        class Sound {
-            constructor(freq, dur, i) {
-                this.freq = freq; this.dur = dur; this.index = i;
-                this.sp = notes[i].sp; this.speed = dur * 0.5;
-            }
-            play() {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = "triangle"; osc.frequency.value = this.freq;
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + this.speed);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); this.sp.classList.add("jump");
-                osc.stop(audioCtx.currentTime + this.speed);
-                osc.onended = () => {
-                    this.sp.classList.remove("jump");
-                    if(this.index < sounds.length - 1) sounds[this.index + 1].play();
-                    else { document.getElementById('open-btn').style.display = 'block'; }
-                };
-            }
-        }
-
+        // --- AUDIO ---
         notes.forEach((n, i) => {
             n.sp = document.createElement("span"); n.sp.innerHTML = n.t;
             n.p.appendChild(n.sp);
-            sounds.push(new Sound(n.f, n.d, i));
+            sounds.push({f: n.f, d: n.d, sp: n.sp});
         });
 
-        document.getElementById('open-btn').addEventListener('click', () => {
-            document.getElementById('open-btn').style.display = 'none';
-            document.getElementById('wishes').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('wishes').style.display = 'none';
-                const letter = document.getElementById('final-letter');
-                letter.style.display = 'block';
-                setTimeout(() => letter.style.opacity = '1', 50);
-            }, 800);
-        });
+        function playSong(idx = 0) {
+            if (idx >= sounds.length) { document.getElementById('open-btn').style.display = 'block'; return; }
+            const s = sounds[idx];
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "triangle"; osc.frequency.value = s.f;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (s.d * 0.4));
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            s.sp.classList.add("jump");
+            osc.start();
+            osc.stop(audioCtx.currentTime + (s.d * 0.4));
+            osc.onended = () => { s.sp.classList.remove("jump"); playSong(idx + 1); };
+        }
 
-        // --- AI & GESTURE DETECTION ---
+        // --- AI (ROBUST) ---
         let handLandmarker, handPos = new THREE.Vector3(1000, 1000, 1000);
         async function initAI() {
             try {
                 const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm");
                 handLandmarker = await HandLandmarker.createFromOptions(vision, {
-                    baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate: "GPU" },
+                    baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task" },
                     runningMode: "VIDEO", numHands: 1
                 });
                 const video = document.getElementById('webcam-video');
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-                video.addEventListener("loadeddata", () => {
+                video.onloadeddata = () => {
                     const detect = () => {
                         const res = handLandmarker.detectForVideo(video, performance.now());
                         if (res.landmarks?.[0]) {
                             const l = res.landmarks[0];
                             handPos.set((0.5 - l[8].x) * 80, (0.5 - l[8].y) * 55, 0);
-                            
-                            // Finger counting logic
-                            let fingers = 0;
-                            if (l[8].y < l[6].y) fingers++;  // Index
-                            if (l[12].y < l[10].y) fingers++; // Middle
-                            if (l[16].y < l[14].y) fingers++; // Ring
-                            if (l[20].y < l[18].y) fingers++; // Pinky
-
-                            if (appState === "COUNTDOWN") {
-                                if (fingers === 1 && currentShape !== 1) { setCakeTargets(); currentShape = 1; }
-                                else if (fingers === 2 && currentShape !== 2) { setCandleTargets(); currentShape = 2; }
-                                else if (fingers === 3 && currentShape !== 3) { set15Targets(); currentShape = 3; }
-                                else if (fingers === 4 && currentShape !== 4) { setGeminiTargets(); currentShape = 4; }
+                            let f = 0;
+                            if(l[8].y < l[6].y) f++; if(l[12].y < l[10].y) f++; if(l[16].y < l[14].y) f++; if(l[20].y < l[18].y) f++;
+                            if(appState === "COUNTDOWN"){
+                                if(f===1 && currentShape!==1){ setCakeTargets(); currentShape=1; }
+                                else if(f===2 && currentShape!==2){ setCandleTargets(); currentShape=2; }
+                                else if(f===3 && currentShape!==3){ set15Targets(); currentShape=3; }
+                                else if(f===4 && currentShape!==4){ setGeminiTargets(); currentShape=4; }
                             }
                         } else { handPos.set(1000, 1000, 1000); }
                         requestAnimationFrame(detect);
                     };
                     detect();
-                });
-            } catch(e) { console.log("AI not supported"); }
+                };
+            } catch(e) { 
+                console.error("Camera/AI Failed:", e); 
+                document.getElementById('gesture-prompt').innerText = "CAMERA NOT AVAILABLE - USE TIMER";
+            }
         }
         initAI();
 
@@ -355,21 +327,20 @@
             document.getElementById('photo-reveal').style.opacity = "1";
             document.getElementById('wishes').style.opacity = "1";
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            sounds[0].play();
+            playSong();
         }
 
         function animate() {
             requestAnimationFrame(animate);
             const p = geo.attributes.position.array, t = geo.attributes.target.array, v = geo.attributes.velocity.array;
-
             for(let i=0; i<CONFIG.totalParticles; i++) {
                 const i3 = i * 3;
                 p[i3] += v[i3]; p[i3+1] += v[i3+1]; p[i3+2] += v[i3+2];
-                v[i3] *= 0.95; v[i3+1] *= 0.95; v[i3+2] *= 0.95;
+                v[i3] *= 0.94; v[i3+1] *= 0.94; v[i3+2] *= 0.94;
                 const dx = p[i3] - handPos.x, dy = p[i3+1] - handPos.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 12) { v[i3] += (dx/dist) * (12-dist)*0.15; v[i3+1] += (dy/dist) * (12-dist)*0.15; }
-                const s = (appState === "REVEAL") ? 0.015 : 0.06; 
+                if (dist < 12) { v[i3] += (dx/dist) * (12-dist)*0.18; v[i3+1] += (dy/dist) * (12-dist)*0.18; }
+                const s = (appState === "REVEAL") ? 0.012 : 0.06; 
                 p[i3] += (t[i3] - p[i3]) * s; p[i3+1] += (t[i3+1] - p[i3+1]) * s; p[i3+2] += (t[i3+2] - p[i3+2]) * s;
             }
             geo.attributes.position.needsUpdate = true;
@@ -382,4 +353,31 @@
                 isTimerFinished = true;
                 if(appState === "COUNTDOWN") {
                     document.getElementById('countdown').innerText = "READY!";
-                    document.getEleme
+                    document.getElementById('gesture-prompt').style.opacity = "0.7";
+                }
+            } else {
+                const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4), s = Math.floor(diff%6e4/1e3);
+                document.getElementById('countdown').innerText = `${d}:${h}:${m}:${s}`;
+            }
+        }, 1000);
+
+        document.getElementById('countdown').addEventListener('click', startReveal);
+        document.getElementById('open-btn').addEventListener('click', () => {
+            document.getElementById('open-btn').style.display = 'none';
+            document.getElementById('wishes').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('wishes').style.display = 'none';
+                const letter = document.getElementById('final-letter');
+                letter.style.display = 'block';
+                setTimeout(() => letter.style.opacity = '1', 50);
+            }, 800);
+        });
+
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
