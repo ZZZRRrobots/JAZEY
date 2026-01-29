@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bazaar Coffee & Waffles Menu</title>
+<style>
+  /* GENERAL STYLING */
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e1f3a, #2c2c54, #4b3b2f);
+    color: #f5f5f5;
+  }
+  h1 {
+    text-align: center;
+    padding: 20px;
+    color: #ffd700;
+    text-shadow: 1px 1px 4px #000;
+  }
+  .menu-container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+  .section {
+    margin-bottom: 40px;
+  }
+  .section h2 {
+    color: #ffb347;
+    border-bottom: 2px solid #ffb347;
+    padding-bottom: 5px;
+  }
+  .item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #555;
+  }
+  .item:last-child {
+    border-bottom: none;
+  }
+  .item-name {
+    font-weight: bold;
+  }
+  .price {
+    color: #00ffea;
+    font-weight: bold;
+  }
+  /* BUTTONS */
+  .combo-btn {
+    display: block;
+    background: #6a0dad;
+    color: #fff;
+    padding: 10px;
+    margin: 15px 0;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px #000;
+    transition: 0.3s;
+  }
+  .combo-btn:hover {
+    background: #ff7f50;
+    color: #fff;
+    transform: scale(1.05);
+  }
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 20px;
+    background: #1c1c2e;
+    color: #aaa;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Bazaar Coffee & Waffles Menu</h1>
+
+<div class="menu-container">
+
+  <!-- HOT COFFEE -->
+  <div class="section">
+    <h2>Hot Coffee</h2>
+    <div class="item"><span class="item-name">Espresso</span><span class="price">20 EGP</span></div>
+    <div class="item"><span class="item-name">Double Espresso</span><span class="price">25 EGP</span></div>
+    <div class="item"><span class="item-name">Americano</span><span class="price">22 EGP</span></div>
+    <div class="item"><span class="item-name">Cappuccino</span><span class="price">28 EGP</span></div>
+    <div class="item"><span class="item-name">Latte</span><span class="price">30 EGP</span></div>
+    <div class="item"><span class="item-name">Flat White</span><span class="price">32 EGP</span></div>
+    <div class="item"><span class="item-name">Macchiato</span><span class="price">26 EGP</span></div>
+    <div class="item"><span class="item-name">Cortado</span><span class="price">30 EGP</span></div>
+    <div class="item"><span class="item-name">Mocha</span><span class="price">35 EGP</span></div>
+    <div class="item"><span class="item-name">Hot Milk</span><span class="price">18 EGP</span></div>
+    <div class="item"><span class="item-name">Hot Water</span><span class="price">15 EGP</span></div>
+  </div>
+
+  <!-- COLD COFFEE -->
+  <div class="section">
+    <h2>Cold Coffee</h2>
+    <div class="item"><span class="item-name">Iced Americano</span><span class="price">25 EGP</span></div>
+    <div class="item"><span class="item-name">Iced Latte</span><span class="price">32 EGP</span></div>
+    <div class="item"><span class="item-name">Iced Cappuccino</span><span class="price">34 EGP</span></div>
+    <div class="item"><span class="item-name">Iced Mocha</span><span class="price">38 EGP</span></div>
+    <div class="item"><span class="item-name">Iced Flat White</span><span class="price">35 EGP</span></div>
+  </div>
+
+  <!-- COFFEE WITH SAUCES -->
+  <div class="section">
+    <h2>Special Sauces</h2>
+    <div class="item"><span class="item-name">Nutella Latte / Cappuccino</span><span class="price">20 EGP</span></div>
+    <div class="item"><span class="item-name">Kinder Latte / Cappuccino</span><span class="price">20 EGP</span></div>
+    <div class="item"><span class="item-name">Pistachio Latte / Cappuccino</span><span class="price">25 EGP</span></div>
+    <div class="item"><span class="item-name">Blueberry Latte / Cappuccino</span><span class="price">25 EGP</span></div>
+    <div class="item"><span class="item-name">Nutella Iced Latte / Cappuccino</span><span class="price">20 EGP</span></div>
+    <div class="item"><span class="item-name">Kinder Iced Latte / Cappuccino</span><span class="price">20 EGP</span></div>
+    <div class="item"><span class="item-name">Pistachio Iced Latte / Cappuccino</span><span class="price">25 EGP</span></div>
+    <div class="item"><span class="item-name">Blueberry Iced Latte / Cappuccino</span><span class="price">25 EGP</span></div>
+  </div>
+
+  <!-- WAFFLES -->
+  <div class="section">
+    <h2>Waffles</h2>
+    <div class="item"><span class="item-name">Single Waffle + Nutella / Kinder</span><span class="price">25 EGP</span></div>
+    <div class="item"><span class="item-name">Single Waffle + Pistachio / Blueberry</span><span class="price">30 EGP</span></div>
+    <div class="item"><span class="item-name">Double Waffle + Nutella / Kinder</span><span class="price">40 EGP</span></div>
+    <div class="item"><span class="item-name">Double Waffle + Pistachio / Blueberry</span><span class="price">45 EGP</span></div>
+    <div class="item"><span class="item-name">Add Sprinkles / Chocolate Chips / Nuts / Mini Marshmallows</span><span class="price">+2 EGP each</span></div>
+  </div>
+
+  <a href="#" class="combo-btn" onclick="alert('Thank you for visiting the menu! Order at the counter!')">Order / Customize Your Drink</a>
+
+</div>
+
+<footer>
+  &copy; 2026 Bazaar Coffee & Waffles | Zein Tiger
+</footer>
+
+<script>
+  // You can later add JS interactions like filtering drinks or calculating prices
+</script>
+
+</body>
+</html>
