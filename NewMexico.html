@@ -2,258 +2,331 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Class New Mexico - AI Interface</title>
+    <title>Class New Mexico - AI</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', Courier, monospace; }
+        body { margin: 0; overflow: hidden; background-color: #020205; font-family: 'Courier New', Courier, monospace; }
         
-        /* UI Overlay */
+        /* Sci-Fi UI Overlay */
         #ui-layer {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #00ffcc;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
             z-index: 10;
-            pointer-events: none; /* Let clicks pass through to 3D */
         }
 
-        h1 {
-            text-shadow: 0 0 10px #00ffcc;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* Control Panel */
-        #controls {
+        #title-box {
             position: absolute;
-            bottom: 30px;
+            top: 40px;
+            left: 40px;
+            border-left: 4px solid #00d4ff;
+            padding-left: 20px;
+        }
+
+        h1 { color: #00d4ff; margin: 0; text-transform: uppercase; letter-spacing: 4px; font-size: 2rem; }
+        p { color: #555; margin: 5px 0 0 0; font-weight: bold; }
+
+        /* The Interaction Button */
+        #start-btn {
+            position: absolute;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            z-index: 20;
-            background: rgba(0, 20, 20, 0.8);
-            padding: 15px;
-            border: 1px solid #00ffcc;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
-        }
-
-        input {
+            pointer-events: auto;
             background: transparent;
-            border: none;
-            border-bottom: 2px solid #00ffcc;
-            color: white;
-            padding: 10px;
-            font-size: 16px;
-            width: 300px;
-            outline: none;
-        }
-
-        button {
-            background: #00ffcc;
-            color: black;
-            border: none;
-            padding: 10px 20px;
+            color: #00d4ff;
+            border: 2px solid #00d4ff;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-family: inherit;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
-            transition: all 0.3s;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            z-index: 100;
         }
 
-        button:hover {
-            background: white;
-            box-shadow: 0 0 15px white;
-        }
-
-        /* Loading Overlay */
-        #loader {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 24px;
+        #start-btn:hover {
+            background: #00d4ff;
+            color: #000;
+            box-shadow: 0 0 30px #00d4ff;
         }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <h1>Class: New Mexico</h1>
-        <p>System Status: <span id="status">ONLINE</span></p>
+        <div id="title-box">
+            <h1>Class: New Mexico</h1>
+            <p>SYSTEM: ONLINE // YEAR: 2024</p>
+        </div>
     </div>
 
-    <div id="controls">
-        <input type="text" id="textInput" placeholder="Type what you want me to say..." value="Hello Class New Mexico. I am your AI assistant.">
-        <button onclick="speakText()">Speak</button>
-    </div>
+    <button id="start-btn" onclick="activateRobot()">Initialize Presentation</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- CONFIGURATION ---
+        // ==========================================
+        //  USER SETTINGS (EDIT TEXT HERE)
+        // ==========================================
+        
+        // This is what the robot will say when you click the button.
+        // You can make this as long as you want.
+        const ROBOT_SPEECH = `
+            Greetings, judges and students. 
+            Welcome to Class New Mexico. 
+            I am the autonomous class representative.
+            We are the best class because we operate with maximum efficiency and creativity.
+            Enjoy the presentation.
+        `;
+
+        // ==========================================
+        //  3D ENGINE SETUP
+        // ==========================================
+
         let scene, camera, renderer;
-        let robotGroup, head, jaw, leftEye, rightEye;
+        let robotHeadGroup, jaw, leftEye, rightEye, neck;
         let isSpeaking = false;
-        let mouthSpeed = 0.2;
-        let time = 0;
+        let mouse = new THREE.Vector2();
+        let targetRotation = new THREE.Vector2();
+        let blinkInterval;
 
-        // --- INIT THREE.JS SCENE ---
         function init() {
+            // Scene Setup
             scene = new THREE.Scene();
-            // Fog for depth
-            scene.fog = new THREE.FogExp2(0x050505, 0.02);
+            scene.fog = new THREE.FogExp2(0x020205, 0.02);
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 5;
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 8;
+            camera.position.y = 0.5;
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ReinhardToneMapping;
             document.body.appendChild(renderer.domElement);
 
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
-            scene.add(ambientLight);
+            // Lighting (Cinematic)
+            const ambient = new THREE.AmbientLight(0x333333);
+            scene.add(ambient);
 
-            const pointLight = new THREE.PointLight(0x00ffcc, 1, 100);
-            pointLight.position.set(5, 5, 5);
-            scene.add(pointLight);
+            const keyLight = new THREE.DirectionalLight(0x00d4ff, 1.5); // Blue Main Light
+            keyLight.position.set(5, 5, 5);
+            scene.add(keyLight);
 
-            const backLight = new THREE.PointLight(0xff0055, 1, 100);
-            backLight.position.set(-5, 5, -5);
-            scene.add(backLight);
+            const rimLight = new THREE.SpotLight(0xff0055, 2); // Red Rim Light (Cyberpunk feel)
+            rimLight.position.set(-5, 5, -5);
+            scene.add(rimLight);
 
-            createRobot();
-            
-            // Mouse Interaction
+            buildAdvancedRobot();
+            createStars();
+
+            // Event Listeners
             document.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('resize', onResize);
+            
+            // Random Blinking logic
+            setInterval(() => {
+                if(!isSpeaking) blink();
+            }, 4000);
 
             animate();
         }
 
-        // --- BUILD THE ROBOT (Procedural Geometry) ---
-        function createRobot() {
-            robotGroup = new THREE.Group();
+        // ==========================================
+        //  ROBOT BUILDING (PROCEDURAL)
+        // ==========================================
+        function buildAdvancedRobot() {
+            robotHeadGroup = new THREE.Group();
 
             // Materials
-            const armorMat = new THREE.MeshStandardMaterial({ 
-                color: 0x222222, 
-                metalness: 0.8, 
-                roughness: 0.2 
-            });
-            const glowMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+            const metalDark = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.9, roughness: 0.3 });
+            const metalShiny = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 1.0, roughness: 0.1 });
+            const glowBlue = new THREE.MeshBasicMaterial({ color: 0x00d4ff });
+            const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
-            // 1. Main Head (Skull)
-            const skullGeo = new THREE.BoxGeometry(2.2, 2.5, 2);
-            head = new THREE.Mesh(skullGeo, armorMat);
-            
-            // 2. Eyes (Glowing)
-            const eyeGeo = new THREE.SphereGeometry(0.3, 32, 32);
-            leftEye = new THREE.Mesh(eyeGeo, glowMat);
-            leftEye.position.set(-0.6, 0.2, 1);
-            
-            rightEye = new THREE.Mesh(eyeGeo, glowMat);
-            rightEye.position.set(0.6, 0.2, 1);
-            
-            head.add(leftEye);
-            head.add(rightEye);
+            // 1. NECK & SHOULDERS (Base)
+            const shoulderGeo = new THREE.CylinderGeometry(2, 4, 1.5, 6);
+            const shoulders = new THREE.Mesh(shoulderGeo, metalDark);
+            shoulders.position.y = -2.5;
+            robotHeadGroup.add(shoulders);
 
-            // 3. Jaw (The moving part)
-            const jawGeo = new THREE.BoxGeometry(1.8, 0.8, 1.8);
-            jaw = new THREE.Mesh(jawGeo, darkMat);
-            jaw.position.set(0, -1.5, 0.2); // Initial position below head
-            
-            // Add parts to group
-            robotGroup.add(head);
-            robotGroup.add(jaw);
+            neck = new THREE.Group();
+            const neckPost = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 1.5, 16), metalShiny);
+            neckPost.position.y = -1.5;
+            neck.add(neckPost);
+            robotHeadGroup.add(neck);
 
-            scene.add(robotGroup);
+            // 2. MAIN CRANIUM (The Head)
+            const headBase = new THREE.Group();
+            
+            // Helmet/Skull
+            const skullGeo = new THREE.BoxGeometry(2.5, 2.8, 2.5);
+            const skull = new THREE.Mesh(skullGeo, metalDark);
+            headBase.add(skull);
+
+            // Face Plate
+            const faceGeo = new THREE.BoxGeometry(2.1, 2, 2.6);
+            const face = new THREE.Mesh(faceGeo, metalShiny);
+            face.position.y = -0.2;
+            headBase.add(face);
+
+            // Ear Antennae
+            const earGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.5, 16);
+            earGeo.rotateZ(Math.PI / 2);
+            
+            const leftEar = new THREE.Mesh(earGeo, metalShiny);
+            leftEar.position.set(-1.4, 0, 0);
+            const leftEarTip = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.8, 0.2), glowBlue);
+            leftEarTip.position.x = -0.3;
+            leftEar.add(leftEarTip);
+            
+            const rightEar = leftEar.clone();
+            rightEar.position.set(1.4, 0, 0);
+            rightEar.rotation.z = -Math.PI / 2; // Fix rotation flip
+            
+            headBase.add(leftEar);
+            headBase.add(rightEar);
+
+            // 3. EYES
+            const eyeGeo = new THREE.SphereGeometry(0.35, 32, 32);
+            leftEye = new THREE.Mesh(eyeGeo, glowBlue);
+            leftEye.position.set(-0.6, 0.1, 1.25);
+            
+            rightEye = new THREE.Mesh(eyeGeo, glowBlue);
+            rightEye.position.set(0.6, 0.1, 1.25);
+
+            headBase.add(leftEye);
+            headBase.add(rightEye);
+
+            // 4. JAW (Moving Part)
+            jaw = new THREE.Group();
+            const jawBone = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 2.0), metalDark);
+            jawBone.position.y = -0.4; // Offset relative to pivot
+            jaw.position.y = -1.0;     // Pivot placement
+            jaw.position.z = 0.2;
+            
+            // Chin piece
+            const chin = new THREE.Mesh(new THREE.BoxGeometry(1, 0.4, 1.5), metalShiny);
+            chin.position.y = -0.7;
+            jaw.add(chin);
+            jaw.add(jawBone);
+            
+            headBase.add(jaw);
+            
+            // Attach Head to Neck pivot
+            headBase.position.y = 0;
+            neck.add(headBase);
+
+            scene.add(robotHeadGroup);
         }
 
-        // --- ANIMATION LOOP ---
+        // Add background stars for depth
+        function createStars() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            for (let i = 0; i < 500; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 40
+                );
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
+            const stars = new THREE.Points(geometry, material);
+            scene.add(stars);
+        }
+
+        // ==========================================
+        //  ANIMATION & LOGIC
+        // ==========================================
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
         function animate() {
             requestAnimationFrame(animate);
-            time += 0.05;
 
-            // Idle floating animation
-            robotGroup.position.y = Math.sin(time) * 0.1;
+            // Smooth Look-at logic
+            targetRotation.x = mouse.y * 0.3;
+            targetRotation.y = mouse.x * 0.5;
 
-            // Mouth Animation (Lip Sync Simulation)
-            if (isSpeaking) {
-                // Randomize jaw movement to simulate talking
-                jaw.position.y = -1.5 - Math.abs(Math.sin(time * 5) * 0.3);
+            if(robotHeadGroup) {
+                // Head rotation (Neck pivot)
+                robotHeadGroup.rotation.x = THREE.MathUtils.lerp(robotHeadGroup.rotation.x, targetRotation.x, 0.1);
+                robotHeadGroup.rotation.y = THREE.MathUtils.lerp(robotHeadGroup.rotation.y, targetRotation.y, 0.1);
                 
-                // Flicker eyes slightly when talking
-                leftEye.material.opacity = 0.8 + Math.random() * 0.2;
+                // Idle breathing movement (Shoulders/Base)
+                robotHeadGroup.position.y = Math.sin(Date.now() * 0.001) * 0.1;
+            }
+
+            // Speaking Animation (Jaw Movement)
+            if (isSpeaking) {
+                // Fast random movement for talking
+                jaw.rotation.x = Math.abs(Math.sin(Date.now() * 0.02)) * 0.4;
+                // Flicker eyes
+                leftEye.material.intensity = 1 + Math.random(); 
             } else {
-                // Close mouth smoothly
-                jaw.position.y = THREE.MathUtils.lerp(jaw.position.y, -1.4, 0.1);
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        // --- MOUSE TRACKING ---
-        function onMouseMove(event) {
-            // Calculate mouse position relative to center of screen (-1 to +1)
-            const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            // Rotate entire robot group slightly to look at cursor
-            if(robotGroup) {
-                robotGroup.rotation.y = mouseX * 0.5;
-                robotGroup.rotation.x = mouseY * 0.3;
+                // Return to closed
+                jaw.rotation.x = THREE.MathUtils.lerp(jaw.rotation.x, 0, 0.1);
+                leftEye.material.intensity = 1;
             }
         }
 
-        function onWindowResize() {
+        function blink() {
+            if(!leftEye) return;
+            leftEye.scale.y = 0.1;
+            rightEye.scale.y = 0.1;
+            setTimeout(() => {
+                leftEye.scale.y = 1;
+                rightEye.scale.y = 1;
+            }, 100);
+        }
+
+        function onResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // --- TEXT TO SPEECH ENGINE ---
-        function speakText() {
-            const text = document.getElementById('textInput').value;
-            
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel(); // Stop current speech if any
-            }
+        // ==========================================
+        //  SPEECH ENGINE
+        // ==========================================
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            // Select a robotic voice if available
+        function activateRobot() {
+            // Hide button
+            const btn = document.getElementById('start-btn');
+            btn.innerHTML = "PRESENTING...";
+            btn.style.borderColor = "#ff0055";
+            btn.style.color = "#ff0055";
+
+            // Setup Speech
+            const utterance = new SpeechSynthesisUtterance(ROBOT_SPEECH);
             const voices = window.speechSynthesis.getVoices();
-            // Try to find a "Google US English" or similar, otherwise default
-            const robotVoice = voices.find(v => v.name.includes('Google US English')) || voices[0];
-            utterance.voice = robotVoice;
             
-            utterance.pitch = 0.8; // Lower pitch for robot effect
-            utterance.rate = 1.0;  // Normal speed
+            // Try to find a cool voice (Google US English or similar)
+            utterance.voice = voices.find(v => v.name.includes('Google US English')) || voices[0];
+            utterance.pitch = 0.6; // Deep Robot Voice
+            utterance.rate = 0.9;  // Slightly slow and deliberate
 
-            // Event Listeners for Animation
-            utterance.onstart = function() {
-                isSpeaking = true;
-                document.getElementById('status').innerText = "TRANSMITTING...";
-                document.getElementById('status').style.color = "#ff0055";
-            };
-
-            utterance.onend = function() {
-                isSpeaking = false;
-                document.getElementById('status').innerText = "ONLINE";
-                document.getElementById('status').style.color = "#00ffcc";
+            utterance.onstart = () => { isSpeaking = true; };
+            utterance.onend = () => { 
+                isSpeaking = false; 
+                btn.innerHTML = "REPLAY";
+                btn.style.borderColor = "#00d4ff";
+                btn.style.color = "#00d4ff";
             };
 
             window.speechSynthesis.speak(utterance);
         }
 
-        // Initialize everything
         init();
-
     </script>
 </body>
 </html>
+
