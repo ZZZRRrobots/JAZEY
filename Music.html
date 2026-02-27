@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZTiger Vinyl Music</title>
 <style>
-  /* General Styles */
   body {
     margin: 0;
     font-family: 'Arial', sans-serif;
@@ -15,18 +14,20 @@
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    overflow-x: hidden;
   }
 
   h1 {
     margin: 20px;
-    color: #FFD700; /* yellow accent */
+    color: #FFD700;
+    text-align: center;
   }
 
   /* Song Buttons */
   .song-buttons {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
     margin-top: 20px;
   }
 
@@ -40,6 +41,7 @@
     padding: 10px;
     cursor: pointer;
     transition: transform 0.2s, background 0.2s;
+    width: 100px;
   }
 
   .song-button:hover {
@@ -48,7 +50,7 @@
   }
 
   .song-button img {
-    width: 100px;
+    width: 100%;
     height: 100px;
     object-fit: cover;
     border-radius: 10px;
@@ -60,24 +62,28 @@
     text-align: center;
   }
 
-  /* Vinyl Area */
+  /* Vinyl Container */
   .vinyl-container {
     position: relative;
     margin-top: 50px;
-    width: 300px;
-    height: 300px;
+    width: 70vw;
+    max-width: 350px;
+    aspect-ratio: 1/1;
   }
 
+  /* CSS Vinyl Disc */
   .vinyl {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    transform-origin: center center;
-    transition: opacity 0.5s;
+    background: radial-gradient(circle at center, #000 0%, #111 40%, #222 100%);
+    border: 4px solid #333;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    display: none;
     position: absolute;
     top: 0;
     left: 0;
-    display: none; /* hidden initially */
+    transform-origin: center center;
   }
 
   .vinyl.spin {
@@ -111,14 +117,38 @@
   footer {
     margin-top: 50px;
     color: #888;
+    text-align: center;
   }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .song-button {
+      width: 80px;
+    }
+
+    .song-button img {
+      height: 80px;
+    }
+
+    .vinyl-container {
+      width: 80vw;
+      max-width: 250px;
+    }
+
+    .hand {
+      width: 60px;
+      height: 60px;
+      top: -15px;
+      right: -15px;
+    }
+  }
+
 </style>
 </head>
 <body>
 
 <h1>ZTiger Vinyl Music</h1>
 
-<!-- Song Buttons -->
 <div class="song-buttons">
   <div class="song-button" data-song="song1.mp3" data-vinyl="vinyl1.png">
     <img src="cover1.png" alt="Song 1 Cover">
@@ -134,51 +164,47 @@
   </div>
 </div>
 
-<!-- Vinyl Area -->
 <div class="vinyl-container">
-  <img src="" alt="Vinyl" class="vinyl" id="vinyl">
+  <div class="vinyl" id="vinyl"></div>
   <div class="hand" id="hand"></div>
 </div>
 
-<!-- Audio Element -->
 <audio id="audio"></audio>
 
 <footer>🖤💛 ZTiger Music</footer>
 
 <script>
-  const buttons = document.querySelectorAll('.song-button');
-  const vinyl = document.getElementById('vinyl');
-  const hand = document.getElementById('hand');
-  const audio = document.getElementById('audio');
+const buttons = document.querySelectorAll('.song-button');
+const vinyl = document.getElementById('vinyl');
+const hand = document.getElementById('hand');
+const audio = document.getElementById('audio');
 
-  buttons.forEach(button => {
-    button.addEventListener('click', () => {
-      // Stop current audio
-      audio.pause();
-      audio.currentTime = 0;
+buttons.forEach(button => {
+  button.addEventListener('click', () => {
+    // Stop current audio
+    audio.pause();
+    audio.currentTime = 0;
 
-      // Set new audio
-      const song = button.getAttribute('data-song');
-      audio.src = song;
-      audio.play();
+    // Play new audio
+    const song = button.getAttribute('data-song');
+    audio.src = song;
+    audio.play();
 
-      // Set vinyl image
-      const vinylImg = button.getAttribute('data-vinyl');
-      vinyl.src = vinylImg;
-      vinyl.style.display = 'block';
-      vinyl.classList.add('spin');
+    // Show vinyl
+    vinyl.style.display = 'block';
+    vinyl.classList.add('spin');
 
-      // Show and animate hand
-      hand.style.display = 'block';
-      hand.classList.add('play');
+    // Show hand
+    hand.style.display = 'block';
+    hand.classList.add('play');
 
-      // When song ends
-      audio.onended = () => {
-        vinyl.classList.remove('spin');
-        hand.classList.remove('play');
-      };
-    });
+    // When song ends
+    audio.onended = () => {
+      vinyl.classList.remove('spin');
+      hand.classList.remove('play');
+    };
   });
+});
 </script>
 
 </body>
