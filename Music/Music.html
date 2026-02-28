@@ -127,6 +127,35 @@ h1 {
   display: block;
 }
 
+/* Control Buttons on Vinyl Box */
+.controls {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.control-btn {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 2px solid #FFD700;
+  background: #fff0;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.control-btn:hover {
+  background: #ffd700;
+  color: #000;
+}
+
 /* Footer */
 footer {
   margin-top: 50px;
@@ -169,6 +198,11 @@ footer {
     top: -2.5px;
     right: -7.5px;
   }
+
+  .control-btn {
+    width: 30px;
+    height: 30px;
+  }
 }
 </style>
 </head>
@@ -194,6 +228,15 @@ footer {
 <div class="vinyl-container">
   <img src="" alt="Vinyl" class="vinyl" id="vinyl">
   <div class="hand" id="hand"></div>
+
+  <!-- Control Buttons -->
+  <div class="controls">
+    <div class="control-btn" id="prev">&#9664;</div>
+    <div class="control-btn" id="play">&#9654;</div>
+    <div class="control-btn" id="pause">&#10074;&#10074;</div>
+    <div class="control-btn" id="stop">&#9632;</div>
+    <div class="control-btn" id="next">&#9654;&#9654;</div>
+  </div>
 </div>
 
 <audio id="audio"></audio>
@@ -206,33 +249,54 @@ const vinyl = document.getElementById('vinyl');
 const hand = document.getElementById('hand');
 const audio = document.getElementById('audio');
 
-buttons.forEach(button => {
+let currentIndex = 0;
+const songs = Array.from(buttons).map(btn => ({
+  song: btn.getAttribute('data-song'),
+  vinyl: btn.getAttribute('data-vinyl')
+}));
+
+function loadSong(index) {
+  const {song, vinyl: vinylImg} = songs[index];
+  audio.src = song;
+  vinyl.src = vinylImg;
+  vinyl.style.display = 'block';
+  vinyl.classList.add('spin');
+  hand.style.display = 'block';
+  hand.classList.add('play');
+}
+
+buttons.forEach((button, i) => {
   button.addEventListener('click', () => {
-    // Stop current audio
-    audio.pause();
-    audio.currentTime = 0;
-
-    // Play new audio
-    const song = button.getAttribute('data-song');
-    audio.src = song;
+    currentIndex = i;
+    loadSong(currentIndex);
     audio.play();
-
-    // Show vinyl image
-    const vinylImg = button.getAttribute('data-vinyl');
-    vinyl.src = vinylImg;
-    vinyl.style.display = 'block';
-    vinyl.classList.add('spin');
-
-    // Show hand
-    hand.style.display = 'block';
-    hand.classList.add('play');
-
-    // When song ends
-    audio.onended = () => {
-      vinyl.classList.remove('spin');
-      hand.classList.remove('play');
-    };
   });
+});
+
+// Controls
+document.getElementById('play').addEventListener('click', () => audio.play());
+document.getElementById('pause').addEventListener('click', () => audio.pause());
+document.getElementById('stop').addEventListener('click', () => {
+  audio.pause();
+  audio.currentTime = 0;
+  vinyl.classList.remove('spin');
+  hand.classList.remove('play');
+});
+document.getElementById('next').addEventListener('click', () => {
+  currentIndex = (currentIndex + 1) % songs.length;
+  loadSong(currentIndex);
+  audio.play();
+});
+document.getElementById('prev').addEventListener('click', () => {
+  currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+  loadSong(currentIndex);
+  audio.play();
+});
+
+// Stop vinyl spinning when song ends
+audio.addEventListener('ended', () => {
+  vinyl.classList.remove('spin');
+  hand.classList.remove('play');
 });
 </script>
 
