@@ -62,17 +62,16 @@ h1 {
   text-align: center;
 }
 
-/* Vinyl Container / Box */
+/* Vinyl Box / Cartoon Turntable */
 .vinyl-container {
   position: relative;
   margin-top: 50px;
-  width: 70vw;
-  max-width: 350px;
-  aspect-ratio: 1/1;
-  background: #333;
-  border-radius: 20px;
+  width: 280px;
+  height: 180px;
+  background: linear-gradient(to bottom, #c48e5a, #a06330); /* cartoon wood effect */
+  border-radius: 15px;
   padding: 20px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.7);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -80,11 +79,12 @@ h1 {
 
 /* Vinyl Disc Image */
 .vinyl {
-  width: 80%;
-  height: 80%;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   display: none;
   transform-origin: center center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 /* Spin Animation */
@@ -100,14 +100,15 @@ h1 {
 /* Cartoon Hand / Tonearm */
 .hand {
   position: absolute;
-  width: 120px;
+  width: 100px;
   height: 15px;
   background: #ccc;
-  top: 25%;
-  left: 55%;
+  top: 20px;
+  left: 190px; /* connected to box */
   transform-origin: left center;
   border-radius: 10px 0 0 10px;
   display: none;
+  z-index: 10;
 }
 
 .hand::after {
@@ -144,15 +145,22 @@ footer {
   }
 
   .vinyl-container {
-    width: 80vw;
+    width: 90vw;
     max-width: 250px;
+    height: 150px;
+    padding: 15px;
+  }
+
+  .vinyl {
+    width: 100px;
+    height: 100px;
   }
 
   .hand {
     width: 70px;
     height: 10px;
-    top: 25%;
-    left: 50%;
+    top: 15px;
+    left: 140px;
   }
 
   .hand::after {
