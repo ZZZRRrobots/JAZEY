@@ -68,13 +68,25 @@ h1 {
   margin-top: 50px;
   width: 280px;
   height: 180px;
-  background: linear-gradient(to bottom, #c48e5a, #a06330); /* cartoon wood effect */
-  border-radius: 15px;
+  background: linear-gradient(to bottom, #e3b87a, #c68642); /* cartoon wood gradient */
+  border-radius: 25px;
   padding: 20px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.7);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Top detail to make it cartoon */
+.vinyl-container::before {
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:20px;
+  border-radius: 25px 25px 0 0;
+  background: linear-gradient(to bottom, #ffdca8, #c68642);
 }
 
 /* Vinyl Disc Image */
@@ -85,6 +97,7 @@ h1 {
   display: none;
   transform-origin: center center;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  z-index: 5;
 }
 
 /* Spin Animation */
@@ -100,11 +113,11 @@ h1 {
 /* Cartoon Hand / Tonearm */
 .hand {
   position: absolute;
-  width: 100px;
+  width: 110px;
   height: 15px;
   background: #ccc;
-  top: 20px;
-  left: 190px; /* connected to box */
+  top: 35px; /* slightly above center of box */
+  left: 160px; /* connected to box edge */
   transform-origin: left center;
   border-radius: 10px 0 0 10px;
   display: none;
@@ -127,33 +140,25 @@ h1 {
   display: block;
 }
 
-/* Control Buttons on Vinyl Box */
-.controls {
+/* Play/Pause Button */
+.play-pause-btn {
   position: absolute;
   bottom: 10px;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-}
-
-.control-btn {
-  width: 35px;
-  height: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: #ffd700;
   border-radius: 50%;
-  border: 2px solid #FFD700;
-  background: #fff0;
-  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   font-weight: bold;
-  transition: all 0.2s;
-}
-
-.control-btn:hover {
-  background: #ffd700;
-  color: #000;
+  color: #111;
+  font-size: 20px;
+  box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+  z-index: 15;
 }
 
 /* Footer */
@@ -186,10 +191,10 @@ footer {
   }
 
   .hand {
-    width: 70px;
-    height: 10px;
-    top: 15px;
-    left: 140px;
+    width: 80px;
+    height: 12px;
+    top: 25px;
+    left: 130px;
   }
 
   .hand::after {
@@ -199,9 +204,10 @@ footer {
     right: -7.5px;
   }
 
-  .control-btn {
-    width: 30px;
-    height: 30px;
+  .play-pause-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
   }
 }
 </style>
@@ -228,15 +234,7 @@ footer {
 <div class="vinyl-container">
   <img src="" alt="Vinyl" class="vinyl" id="vinyl">
   <div class="hand" id="hand"></div>
-
-  <!-- Control Buttons -->
-  <div class="controls">
-    <div class="control-btn" id="prev">&#9664;</div>
-    <div class="control-btn" id="play">&#9654;</div>
-    <div class="control-btn" id="pause">&#10074;&#10074;</div>
-    <div class="control-btn" id="stop">&#9632;</div>
-    <div class="control-btn" id="next">&#9654;&#9654;</div>
-  </div>
+  <div class="play-pause-btn" id="playPauseBtn">&#9654;</div>
 </div>
 
 <audio id="audio"></audio>
@@ -248,55 +246,54 @@ const buttons = document.querySelectorAll('.song-button');
 const vinyl = document.getElementById('vinyl');
 const hand = document.getElementById('hand');
 const audio = document.getElementById('audio');
+const playPauseBtn = document.getElementById('playPauseBtn');
 
 let currentIndex = 0;
 const songs = Array.from(buttons).map(btn => ({
   song: btn.getAttribute('data-song'),
   vinyl: btn.getAttribute('data-vinyl')
 }));
+let isPlaying = false;
 
 function loadSong(index) {
   const {song, vinyl: vinylImg} = songs[index];
   audio.src = song;
   vinyl.src = vinylImg;
   vinyl.style.display = 'block';
-  vinyl.classList.add('spin');
   hand.style.display = 'block';
+}
+
+function playSong() {
+  audio.play();
+  vinyl.classList.add('spin');
   hand.classList.add('play');
+  playPauseBtn.innerHTML = '&#10074;&#10074;'; // pause symbol
+  isPlaying = true;
+}
+
+function pauseSong() {
+  audio.pause();
+  vinyl.classList.remove('spin');
+  hand.classList.remove('play');
+  playPauseBtn.innerHTML = '&#9654;'; // play symbol
+  isPlaying = false;
 }
 
 buttons.forEach((button, i) => {
   button.addEventListener('click', () => {
     currentIndex = i;
     loadSong(currentIndex);
-    audio.play();
+    playSong();
   });
 });
 
-// Controls
-document.getElementById('play').addEventListener('click', () => audio.play());
-document.getElementById('pause').addEventListener('click', () => audio.pause());
-document.getElementById('stop').addEventListener('click', () => {
-  audio.pause();
-  audio.currentTime = 0;
-  vinyl.classList.remove('spin');
-  hand.classList.remove('play');
-});
-document.getElementById('next').addEventListener('click', () => {
-  currentIndex = (currentIndex + 1) % songs.length;
-  loadSong(currentIndex);
-  audio.play();
-});
-document.getElementById('prev').addEventListener('click', () => {
-  currentIndex = (currentIndex - 1 + songs.length) % songs.length;
-  loadSong(currentIndex);
-  audio.play();
+playPauseBtn.addEventListener('click', () => {
+  if (isPlaying) pauseSong();
+  else playSong();
 });
 
-// Stop vinyl spinning when song ends
 audio.addEventListener('ended', () => {
-  vinyl.classList.remove('spin');
-  hand.classList.remove('play');
+  pauseSong();
 });
 </script>
 
