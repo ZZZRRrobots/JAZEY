@@ -1,426 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Birthday - Jaidaa</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #010102; font-family: 'Segoe UI', 'Raleway', sans-serif; }
-        
-        #ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 10; display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center; padding: 20px 0;
-            color: white; text-align: center;
-        }
 
-        #wishes {
-            position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
-            width: 90%; text-align: center; z-index: 15;
-            opacity: 0; transition: opacity 1s ease;
-            font-size: clamp(16px, 4vw, 22px); letter-spacing: 0.1em; color: #00eaff;
-            pointer-events: auto;
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#0e000a",
+              "surface-container-low": "#111417",
+              "surface": "#0c0e12",
+              "on-primary-fixed": "#003d43",
+              "on-tertiary": "#430036",
+              "on-primary-container": "#005159",
+              "on-primary-fixed-variant": "#005c64",
+              "error-dim": "#d7383b",
+              "on-secondary-fixed": "#41009a",
+              "on-secondary": "#290067",
+              "secondary-fixed": "#dac9ff",
+              "primary-fixed-dim": "#00dbee",
+              "on-secondary-fixed-variant": "#6300e2",
+              "on-secondary-container": "#f8f1ff",
+              "inverse-on-surface": "#535559",
+              "surface-container-highest": "#22262b",
+              "on-primary": "#005b64",
+              "tertiary-dim": "#ff5ed6",
+              "inverse-surface": "#f8f9fe",
+              "surface-bright": "#282c32",
+              "tertiary-fixed": "#ff87da",
+              "tertiary": "#ff5ed6",
+              "inverse-primary": "#006973",
+              "secondary": "#ac89ff",
+              "error": "#ff716c",
+              "primary-fixed": "#00eaff",
+              "surface-tint": "#90f1ff",
+              "primary": "#90f1ff",
+              "secondary-container": "#7000ff",
+              "surface-container-high": "#1c2025",
+              "primary-dim": "#00dbee",
+              "on-error": "#490006",
+              "on-surface": "#f8f9fe",
+              "surface-container-lowest": "#000000",
+              "error-container": "#9f0519",
+              "surface-dim": "#0c0e12",
+              "on-background": "#f8f9fe",
+              "secondary-fixed-dim": "#ceb9ff",
+              "on-error-container": "#ffa8a3",
+              "on-surface-variant": "#a9abb0",
+              "secondary-dim": "#874cff",
+              "outline": "#73757a",
+              "surface-variant": "#22262b",
+              "primary-container": "#00eaff",
+              "tertiary-fixed-dim": "#ff6bd7",
+              "on-tertiary-fixed": "#34002a",
+              "tertiary-container": "#ff00d4",
+              "on-tertiary-fixed-variant": "#6f005b",
+              "surface-container": "#171a1e",
+              "background": "#0c0e12",
+              "outline-variant": "#46484c"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        #wishes p { margin: 5px 0; min-height: 30px; }
-        span { display: inline-block; margin: 0 3px; transition: color 0.3s; }
-        span.jump { animation: jump 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0s 2 alternate; color: #fff; text-shadow: 0 0 10px #00eaff; }
-        @keyframes jump { to { transform: translateY(-0.7em); } }
-
-        #open-btn {
-            position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
-            padding: 12px 30px; background: rgba(0, 234, 255, 0.1); border: 1px solid #00eaff;
-            color: #00eaff; cursor: pointer; border-radius: 50px; font-weight: bold;
-            display: none; z-index: 210; transition: all 0.4s; letter-spacing: 2px;
-            white-space: nowrap; font-size: 0.9rem;
+        .cosmic-gradient {
+            background: radial-gradient(circle at center, rgba(144, 241, 255, 0.05) 0%, rgba(12, 14, 18, 1) 70%);
         }
-        #open-btn:hover { background: #00eaff; color: #000; box-shadow: 0 0 30px #00eaff; transform: translate(-50%, -50%) scale(1.05); }
-
-        #final-letter {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; max-width: 500px; color: white; text-align: center;
-            z-index: 250; opacity: 0; display: none; transition: opacity 2s ease;
-            background: rgba(0, 0, 0, 0.85); padding: clamp(20px, 5vw, 35px); border-radius: 20px;
-            backdrop-filter: blur(15px); border: 1px solid rgba(0, 234, 255, 0.3);
-        }
-        #final-letter h2 { color: #00eaff; margin-bottom: 15px; font-weight: 300; letter-spacing: 3px; font-size: 1.5rem; }
-        #final-letter p { line-height: 1.6; font-size: 1rem; color: #e0faff; }
-
-        .glow-text {
-            text-transform: uppercase; letter-spacing: 5px;
-            text-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
-            opacity: 0.7;
-        }
-        #countdown { font-size: clamp(1.5rem, 8vw, 3rem); font-weight: bold; font-family: monospace; cursor: pointer; pointer-events: auto;}
-
-        #hand-monitor {
-            position: absolute; bottom: 10px; right: 10px;
-            width: 100px; height: 75px; border: 1px solid rgba(0, 234, 255, 0.2);
-            border-radius: 8px; overflow: hidden; z-index: 100;
-            background: #000; transform: scaleX(-1);
-        }
-        #webcam-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
-
-        #photo-reveal {
-            position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
-            display: flex; gap: clamp(10px, 3vw, 40px); opacity: 0; transition: opacity 3s ease;
-            pointer-events: none; z-index: 5; width: 90%; justify-content: center;
-        }
-        .photo-frame {
-            width: clamp(80px, 20vw, 150px); height: clamp(80px, 20vw, 150px);
-            background-size: cover; background-position: center;
-            border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            background-image: url('https://picsum.photos/400/400?random=1');
-        }
-        .photo-frame:nth-child(2) { background-image: url('https://picsum.photos/400/400?random=2'); }
-        .photo-frame:nth-child(3) { background-image: url('https://picsum.photos/400/400?random=3'); }
-
-        #gesture-prompt {
-            position: absolute; bottom: 120px; color: #00eaff; 
-            font-size: 0.7rem; letter-spacing: 3px; opacity: 0;
-            transition: opacity 0.5s; width: 100%; text-align: center;
-        }
-
-        #gesture-indicator {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 1.2rem; color: #00eaff; opacity: 0;
-            transition: opacity 0.3s; pointer-events: none; z-index: 20;
-            text-align: center; background: rgba(0,0,0,0.7);
-            padding: 15px 25px; border-radius: 15px;
-            border: 1px solid rgba(0, 234, 255, 0.3);
+        .glass-panel {
+            background: rgba(34, 38, 43, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
     </style>
 </head>
-<body>
-
-    <div id="wishes">
-        <p id="p1"></p><p id="p2"></p><p id="p3"></p><p id="p4"></p>
-    </div>
-
-    <button id="open-btn">READ MY MESSAGE</button>
-    
-    <div id="final-letter">
-        <h2>To Jaidaa,</h2>
-        <p>Happy Birthday to one of the best people in my life! Being friends with you is truly one of the greatest things that has ever happened to me. You make every moment brighter, and I am so grateful for our friendship. I hope your day is as incredible as you are!</p>
-    </div>
-
-    <div id="hand-monitor"><video id="webcam-video" autoplay playsinline muted></video></div>
-    <div id="gesture-prompt">TRY HAND GESTURES: 1-4 FINGERS 👆</div>
-    <div id="gesture-indicator"></div>
-
-    <div id="ui-layer">
-        <div class="glow-text">
-            <h1 style="font-size: 0.8rem; margin-bottom: 0;">Happy Birthday</h1>
-            <h2 id="name-display" style="font-size: clamp(1.5rem, 10vw, 3rem); margin-top: 0;">JUJU</h2>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 min-h-screen overflow-hidden">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-[#0c0e12]/60 backdrop-blur-lg">
+<div class="text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#90f1ff] to-[#ac89ff] font-headline uppercase tracking-widest">
+            Stellar Gala
         </div>
-        <div class="glow-text">
-            <div id="countdown">LOADING...</div>
-            <p id="sub-text" style="font-size: 0.6rem;">UNTIL JUNE 3RD</p>
-        </div>
-    </div>
-
-    <div id="photo-reveal">
-        <div class="photo-frame"></div>
-        <div class="photo-frame"></div>
-        <div class="photo-frame"></div>
-    </div>
-
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-            "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm"
-        }
-    }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const notes = [
-            {f:262,d:.5,t:"Hap",p:p1},{f:262,d:.5,t:"py&nbsp;",p:p1},{f:294,d:1,t:"Birth",p:p1},{f:262,d:1,t:"day&nbsp;",p:p1},{f:349,d:1,t:"To&nbsp;",p:p1},{f:330,d:2,t:"You",p:p1},
-            {f:262,d:.5,t:"Hap",p:p2},{f:262,d:.5,t:"py&nbsp;",p:p2},{f:294,d:1,t:"Birth",p:p2},{f:262,d:1,t:"day&nbsp;",p:p2},{f:392,d:1,t:"To&nbsp;",p:p2},{f:349,d:2,t:"You",p:p2},
-            {f:262,d:.5,t:"Hap",p:p3},{f:262,d:.5,t:"py&nbsp;",p:p3},{f:523,d:1,t:"Birth",p:p3},{f:440,d:1,t:"day&nbsp;",p:p3},{f:349,d:1,t:"Dear&nbsp;",p:p3},{f:330,d:1,t:"Jai",p:p3},{f:294,d:3,t:"daa",p:p3},
-            {f:466,d:.5,t:"Hap",p:p4},{f:466,d:.5,t:"py&nbsp;",p:p4},{f:440,d:1,t:"Birth",p:p4},{f:349,d:1,t:"day&nbsp;",p:p4},{f:392,d:1,t:"To&nbsp;",p:p4},{f:349,d:2,t:"You",p:p4}
-        ];
-        let sounds = [];
-
-        const CONFIG = {
-            totalParticles: 10000, 
-            colors: { yellow: 0xcc8800, blue: 0x004499, white: 0xffffff, orange: 0xff6600, purple: 0x9933ff },
-            targetDate: new Date("June 3, 2026 00:00:00").getTime()
-        };
-
-        let appState = "COUNTDOWN", isTimerFinished = false, gestureTimer = 0, isSpecialGesture = false;
-        let currentFingerCount = 0, currentGestureType = "none";
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 60;
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        document.body.appendChild(renderer.domElement);
-
-        const composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.85);
-        composer.addPass(bloom);
-
-        const geo = new THREE.BufferGeometry();
-        const pos = new Float32Array(CONFIG.totalParticles * 3);
-        const tar = new Float32Array(CONFIG.totalParticles * 3);
-        const vel = new Float32Array(CONFIG.totalParticles * 3);
-        const col = new Float32Array(CONFIG.totalParticles * 3);
-
-        function setCakeTargets() {
-            const colors = geo.attributes.color.array;
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz, r = Math.random();
-                if(r < 0.6) {
-                    const rad = Math.sqrt(Math.random()) * 11; 
-                    const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); 
-                    ty = (Math.random() * 7) - 9; 
-                    tz = rad * Math.sin(theta);
-                    const c = new THREE.Color(CONFIG.colors.yellow);
-                    colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-                } else if (r < 0.9) {
-                    const rad = Math.sqrt(Math.random()) * 7; 
-                    const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta); 
-                    ty = (Math.random() * 6) - 2; 
-                    tz = rad * Math.sin(theta);
-                    const c = new THREE.Color(CONFIG.colors.blue);
-                    colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-                } else {
-                    tx = (Math.random() - 0.5) * 10; 
-                    ty = 4 + (Math.random() * 5); 
-                    tz = (Math.random() - 0.5) * 10;
-                    const c = new THREE.Color(CONFIG.colors.orange);
-                    colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-                }
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-            }
-            geo.attributes.color.needsUpdate = true;
-        }
-
-        function setCandleTargets() {
-            const colors = geo.attributes.color.array;
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz, r = Math.random();
-                
-                if(r < 0.7) {
-                    const rad = Math.sqrt(Math.random()) * 2.5;
-                    const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta);
-                    ty = (Math.random() * 20) - 10;
-                    tz = rad * Math.sin(theta);
-                    const c = new THREE.Color(0xff4444);
-                    colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-                } else {
-                    const rad = Math.sqrt(Math.random()) * 3;
-                    const theta = Math.random() * Math.PI * 2;
-                    tx = rad * Math.cos(theta);
-                    ty = 10 + (Math.random() * 8);
-                    tz = rad * Math.sin(theta);
-                    const c = new THREE.Color(CONFIG.colors.orange);
-                    colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-                }
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-            }
-            geo.attributes.color.needsUpdate = true;
-        }
-
-        function setNumber15Targets() {
-            const colors = geo.attributes.color.array;
-            const particlesPerDigit = Math.floor(CONFIG.totalParticles / 2);
-            
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz;
-                
-                if(i < particlesPerDigit) {
-                    const progress = i / particlesPerDigit;
-                    tx = -8 + (Math.random() - 0.5) * 2;
-                    ty = -15 + (progress * 30) + (Math.random() - 0.5) * 2;
-                    tz = (Math.random() - 0.5) * 2;
-                } else {
-                    const progress = (i - particlesPerDigit) / particlesPerDigit;
-                    const segment = Math.floor(progress * 5);
-                    const segProgress = (progress * 5) - segment;
-                    
-                    if(segment === 0) {
-                        tx = 8 + (segProgress * 8);
-                        ty = 15 + (Math.random() - 0.5) * 2;
-                    } else if(segment === 1) {
-                        tx = 8 + (Math.random() - 0.5) * 2;
-                        ty = 15 - (segProgress * 15);
-                    } else if(segment === 2) {
-                        tx = 8 + (segProgress * 8);
-                        ty = 0 + (Math.random() - 0.5) * 2;
-                    } else if(segment === 3) {
-                        tx = 16 + (Math.random() - 0.5) * 2;
-                        ty = 0 - (segProgress * 15);
-                    } else {
-                        tx = 16 - (segProgress * 8);
-                        ty = -15 + (Math.random() - 0.5) * 2;
-                    }
-                    tz = (Math.random() - 0.5) * 2;
-                }
-                
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                const c = new THREE.Color(CONFIG.colors.blue);
-                colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-            }
-            geo.attributes.color.needsUpdate = true;
-        }
-
-        function setGeminiTargets() {
-            const colors = geo.attributes.color.array;
-            const particlesPerLine = Math.floor(CONFIG.totalParticles / 6);
-            
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                let tx, ty, tz;
-                const lineIndex = Math.floor(i / particlesPerLine);
-                const progress = (i % particlesPerLine) / particlesPerLine;
-                
-                if(lineIndex === 0) {
-                    tx = -12;
-                    ty = -15 + (progress * 30);
-                    tz = 0;
-                } else if(lineIndex === 1) {
-                    tx = 12;
-                    ty = -15 + (progress * 30);
-                    tz = 0;
-                } else if(lineIndex === 2) {
-                    tx = -12 + (progress * 24);
-                    ty = 15;
-                    tz = 0;
-                } else if(lineIndex === 3) {
-                    tx = -12 + (progress * 24);
-                    ty = -15;
-                    tz = 0;
-                } else if(lineIndex === 4) {
-                    tx = -12 + (progress * 10);
-                    ty = 0;
-                    tz = 0;
-                } else {
-                    tx = 2 + (progress * 10);
-                    ty = 0;
-                    tz = 0;
-                }
-                
-                tx += (Math.random() - 0.5) * 1;
-                ty += (Math.random() - 0.5) * 1;
-                tz = (Math.random() - 0.5) * 2;
-                
-                tar[i3] = tx; tar[i3+1] = ty; tar[i3+2] = tz;
-                const c = new THREE.Color(CONFIG.colors.purple);
-                colors[i3] = c.r; colors[i3+1] = c.g; colors[i3+2] = c.b;
-            }
-            geo.attributes.color.needsUpdate = true;
-        }
-
-        function setScatterTargets() {
-            const colors = geo.attributes.color.array;
-            for(let i=0; i<CONFIG.totalParticles; i++) {
-                const i3 = i * 3;
-                tar[i3] = (Math.random() - 0.5) * 140;
-                tar[i3+1] = (Math.random() - 0.5) * 100;
-                tar[i3+2] = (Math.random() - 0.5) * 60;
-                colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
-            }
-            geo.attributes.color.needsUpdate = true;
-        }
-
-        for(let i=0; i<CONFIG.totalParticles; i++){
-            const i3 = i * 3;
-            pos[i3] = (Math.random()-0.5)*200; 
-            pos[i3+1] = (Math.random()-0.5)*200; 
-            pos[i3+2] = (Math.random()-0.5)*200;
-            tar[i3] = pos[i3]; tar[i3+1] = pos[i3+1]; tar[i3+2] = pos[i3+2];
-            const c = new THREE.Color(CONFIG.colors.white);
-            col[i3] = c.r; col[i3+1] = c.g; col[i3+2] = c.b;
-        }
-        
-        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        geo.setAttribute('target', new THREE.BufferAttribute(tar, 3));
-        geo.setAttribute('velocity', new THREE.BufferAttribute(vel, 3));
-        geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-        const particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ 
-            size: 0.28, 
-            vertexColors: true, 
-            blending: THREE.AdditiveBlending, 
-            transparent: true, 
-            opacity: 0.6 
-        }));
-        scene.add(particleSystem);
-
-        class Sound {
-            constructor(freq, dur, i) {
-                this.freq = freq; this.dur = dur; this.index = i;
-                this.sp = notes[i].sp; this.speed = dur * 0.5;
-            }
-            play() {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = "triangle"; osc.frequency.value = this.freq;
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + this.speed);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); this.sp.classList.add("jump");
-                osc.stop(audioCtx.currentTime + this.speed);
-                osc.onended = () => {
-                    this.sp.classList.remove("jump");
-                    if(this.index < sounds.length - 1) sounds[this.index + 1].play();
-                    else { document.getElementById('open-btn').style.display = 'block'; }
-                };
-            }
-        }
-
-        notes.forEach((n, i) => {
-            n.sp = document.createElement("span"); n.sp.innerHTML = n.t;
-            n.p.appendChild(n.sp);
-            sounds.push(new Sound(n.f, n.d, i));
-        });
-
-        document.getElementById('open-btn').addEventListener('click', () => {
-            document.getElementById('open-btn').style.display = 'none';
-            document.getElementById('wishes').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('wishes').style.display = 'none';
-                const letter = document.getElementById('final-letter');
-                letter.style.display = 'block';
-                setTimeout(() => letter.style.opacity = '1', 50);
-            }, 800);
-        });
-
-        let handLandmarker, handPos = new THREE.Vector3(1000, 1000, 1000);
-        
-        function countExtendedFingers(landmarks) {
-            if (!landmarks) return 0;
-            
-            const fingerTips = [8, 12, 16, 20];
-            const fingerMids = [6, 10, 14, 18];
-            const thumbTip = 4;
-            const thumbMid = 3;
-            
-            let count = 0;
-            
-            if (landmarks[thumbTip].x < landmarks[thumbMid].x - 0.05) {
-                count++;
-            }
-            
-            for (let i = 0; i < fingerTips.length; i++) {
-                if (landmarks[fingerTips[i]].y < landmarks[fingerMids[i]].y - 0.05) {
-              
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-slate-400 hover:text-[#90f1ff] hover:drop-shadow-[0_0_8px_rgba(144,241,255,0.8)] active:scale-95 transition-transform duration-300 ease-out" data-icon="auto_awesome">auto_awesome</button>
+<button class="material-symbols-outlined text-slate-400 hover:text-[#90f1ff] hover:drop-shadow-[0_0_8px_rgba(144,241,255,0.8)] active:scale-95 transition-transform duration-300 ease-out" data-icon="notifications">notifications</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img alt="User profile avatar" data-alt="close up of a professional minimalist avatar silhouette against a dark cosmic background with soft blue backlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBstjASvWkGfhfMqTCvmTKM7eNSgz_c00zoV3ocp5xaiUUxeKAGc1ga3CrpvwQ9LItgdDKC3rWllbGoDwYq8jY1Y9ryYl9nrGRcoarkTPZD1ojMoRfZjxpCLqGqMReCkIPnXh-9ddIW1P6g-7zjxDlmwVGcKXNXxRT2oOJS1yr8zLmbsw-TToz0SmwAY44nSraGQ1HRZuyviu-Cbn1SWqsvcF4RKOUvniZgWlxSqgdDNcnctywx--D5GL_ZpZv78xQk4SR6wpWJPeA"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="relative h-screen w-full cosmic-gradient flex flex-col items-center justify-center p-6">
+<!-- Ambient Orbital Glows -->
+<div class="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="absolute -bottom-[20%] -left-[10%] w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[120px] pointer-events-none"></div>
+<!-- Hero Identity -->
+<div class="absolute top-1/4 transform -translate-y-1/2 text-center z-10">
+<p class="font-label text-xs uppercase tracking-[0.5em] text-primary/60 mb-4">Establishing Uplink for</p>
+<h1 class="font-headline text-8xl md:text-[12rem] font-bold tracking-tighter text-on-surface/90 leading-none">
+                JU<span class="text-transparent bg-clip-text bg-gradient-to-b from-primary to-secondary">JU</span>
+</h1>
+</div>
+<!-- Particle-Themed Countdown Centerpiece -->
+<div class="relative z-20 flex flex-col items-center gap-12 mt-32">
+<!-- Countdown Bento Grid -->
+<div class="grid grid-cols-3 gap-6 md:gap-8 max-w-2xl w-full">
+<!-- Days/Hours -->
+<div class="glass-panel p-8 rounded-xl border border-outline-variant/10 text-center flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,234,255,0.05)]">
+<span class="font-headline text-5xl md:text-6xl font-light text-primary tracking-tighter">00</span>
+<span class="font-label text-[10px] uppercase tracking-widest text-outline mt-2">Days</span>
+</div>
+<!-- Minutes -->
+<div class="glass-panel p-8 rounded-xl border border-outline-variant/10 text-center flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,234,255,0.05)]">
+<span class="font-headline text-5xl md:text-6xl font-light text-primary tracking-tighter">00</span>
+<span class="font-label text-[10px] uppercase tracking-widest text-outline mt-2">Minutes</span>
+</div>
+<!-- Seconds -->
+<div class="glass-panel p-8 rounded-xl border border-outline-variant/10 text-center flex flex-col items-center justify-center shadow-[0_0_40px_rgba(0,234,255,0.1)] relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent"></div>
+<span class="font-headline text-5xl md:text-6xl font-bold text-primary tracking-tighter relative z-10">04</span>
+<span class="font-label text-[10px] uppercase tracking-widest text-primary/60 mt-2 relative z-10">Seconds</span>
+</div>
+</div>
+<!-- Interaction Prompt: Ready State -->
+<div class="flex flex-col items-center gap-6 group">
+<div class="relative flex items-center justify-center">
+<!-- Pulsing Outer Ring -->
+<div class="absolute w-24 h-24 rounded-full border border-primary/20 scale-125 opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-700"></div>
+<div class="absolute w-20 h-20 rounded-full border border-primary/40 scale-110 opacity-0 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500 delay-75"></div>
+<!-- Main Interaction Button -->
+<button class="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary-dim p-[2px] shadow-[0_0_30px_rgba(144,241,255,0.3)] hover:shadow-[0_0_50px_rgba(144,241,255,0.5)] transition-all active:scale-90">
+<div class="w-full h-full rounded-full bg-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">flare</span>
+</div>
+</button>
+</div>
+<div class="text-center">
+<h3 class="font-headline text-2xl text-on-surface font-light tracking-wide mb-2 uppercase">Celestial Alignment Ready</h3>
+<p class="font-label text-sm text-outline tracking-widest uppercase flex items-center gap-2 justify-center">
+                        Hold <span class="text-primary font-bold">🤟</span> to Reveal
+                    </p>
+</div>
+</div>
+</div>
+<!-- Background Particle Simulation Decorative Elements -->
+<div class="absolute inset-0 pointer-events-none opacity-40 overflow-hidden">
+<!-- Simulated star field elements -->
+<div class="absolute top-1/4 left-1/4 w-1 h-1 bg-white rounded-full blur-[1px]"></div>
+<div class="absolute top-1/3 right-1/4 w-[2px] h-[2px] bg-primary rounded-full blur-[1px]"></div>
+<div class="absolute bottom-1/4 left-1/2 w-1 h-1 bg-secondary rounded-full blur-[1px]"></div>
+<div class="absolute top-[10%] right-[10%] w-[3px] h-[3px] bg-white rounded-full blur-[2px]"></div>
+<img alt="Star field" class="absolute w-full h-full object-cover mix-blend-screen opacity-20" data-alt="stunning wide angle shot of deep space nebula with swirling cyan and violet cosmic dust and bright distant stars" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATBwxEf9BpCcJQD5vSIah5qUtyCgScenGQY8ltJCJjhn1YmR5s4q-nppb_ykvr0lKGXrwoEn9hgczU2abtG-RuerPhX7o9DR-f3FT9j2g3wr8NV-8XNlMDqfHcEN7yjWs5L-UcI0og1cyb60YHmhSoSkdGd_6idZReveQqMoxypmjQqJBnknYklUZKq0UtkXccNtApmBQ_Nia_sm1_DQ-6sxwh4uktm66_YS-brlP4T2ZOp44aKCdFdFHCACaFV3WvELqEMOIYqnY"/>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#0c0e12]/40 backdrop-blur-2xl border-t border-[#90f1ff]/10 rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<!-- Countdown Active Tab -->
+<div class="flex flex-col items-center justify-center bg-gradient-to-b from-[#00eaff]/20 to-transparent text-[#00eaff] rounded-2xl px-6 py-2 shadow-[inset_0_0_10px_rgba(0,234,255,0.2)] active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-medium tracking-widest uppercase">Countdown</span>
+</div>
+<!-- Reveal Tab -->
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 hover:text-[#90f1ff] active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="flare">flare</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-medium tracking-widest uppercase">Reveal</span>
+</div>
+<!-- Message Tab -->
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-60 hover:opacity-100 hover:text-[#90f1ff] active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="auto_fix_high">auto_fix_high</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-medium tracking-widest uppercase">Message</span>
+</div>
+</nav>
+</body></html>
