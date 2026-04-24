@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Particle Square Control</title>
+
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+    }
+
+    #hand-monitor {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 120px;
+        height: 90px;
+        border: 1px solid rgba(0,255,255,0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #000;
+        transform: scaleX(-1);
+    }
+
+    #webcam-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.5;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="hand-monitor">
+    <video id="webcam-video" autoplay playsinline muted></video>
+</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+        "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm"
+    }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+
+// CONFIG
+const CONFIG = {
+    totalParticles: 8000
+};
+
+// SCENE
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.z = 60;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// BLOOM
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.6, 0.4, 0.8
+));
+
+// PARTICLES
+const geo = new THREE.BufferGeometry();
+const pos = new Float32Array(CONFIG.totalParticles * 3);
+const tar = new Float32Array(CONFIG.totalParticles * 3);
+const vel = new Float32Array(CONFIG.totalParticles * 3);
+const col = new Float32Array(CONFIG.totalParticles * 3);
+
+// 🔲 SQUARE SHAPE
+function setSquareTargets() {
+    const size = 20;
+
+    for (let i = 0; i < CONFIG.totalParticles; i++) {
+        const i3 = i * 3;
+
+        const x = (Math.random() - 0.5) * size;
+        const y = (Math.random() - 0.5) * size;
+        const z = (Math.random() - 0.5) * size * 0.2;
+
+        tar[i3] = x;
+        tar[i3 + 1] = y;
+        tar[i3 + 2] = z;
+    }
+}
+
+setSquareTargets();
+
+// INITIAL RANDOM POSITIONS
+for (let i = 0; i < CONFIG.totalParticles; i++) {
+    const i3 = i * 3;
+
+    pos[i3] = (Math.random() - 0.5) * 200;
+    pos[i3+1] = (Math.random() - 0.5) * 200;
+    pos[i3+2] = (Math.random() - 0.5) * 200;
+
+    const c = new THREE.Color(Math.random() < 0.5 ? 0x00ffff : 0xffffff);
+    col[i3] = c.r;
+    col[i3+1] = c.g;
+    col[i3+2] = c.b;
+}
+
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+geo.setAttribute('target', new THREE.BufferAttribute(tar, 3));
+geo.setAttribute('velocity', new THREE.BufferAttribute(vel, 3));
+geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+const particles = new THREE.Points(
+    geo,
+    new THREE.PointsMaterial({
+        size: 0.3,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.7
+    })
+);
+
+scene.add(particles);
+
+// HAND TRACKING
+let handLandmarker;
+let handPos = new THREE.Vector3(1000,1000,1000);
+
+async function initAI() {
+    try {
+        const vision = await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
+        );
+
+        handLandmarker = await HandLandmarker.createFromOptions(vision, {
+            baseOptions: {
+                modelAssetPath:
+                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                delegate: "GPU"
+            },
+            runningMode: "VIDEO",
+            numHands: 1
+        });
+
+        const video = document.getElementById('webcam-video');
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        video.addEventListener("loadeddata", () => {
+            const detect = () => {
+                const res = handLandmarker.detectForVideo(video, performance.now());
+
+                if (res.landmarks?.[0]) {
+                    const l = res.landmarks[0];
+
+                    handPos.set(
+                        (0.5 - l[8].x) * 80,
+                        (0.5 - l[8].y) * 55,
+                        0
+                    );
+                } else {
+                    handPos.set(1000,1000,1000);
+                }
+
+                requestAnimationFrame(detect);
+            };
+
+            detect();
+        });
+
+    } catch(e) {
+        console.log("Camera/AI not supported");
+    }
+}
+
+initAI();
+
+// ANIMATION
+function animate() {
+    requestAnimationFrame(animate);
+
+    const p = geo.attributes.position.array;
+    const t = geo.attributes.target.array;
+    const v = geo.attributes.velocity.array;
+
+    for (let i = 0; i < CONFIG.totalParticles; i++) {
+        const i3 = i * 3;
+
+        // velocity move
+        p[i3] += v[i3];
+        p[i3+1] += v[i3+1];
+        p[i3+2] += v[i3+2];
+
+        v[i3] *= 0.95;
+        v[i3+1] *= 0.95;
+        v[i3+2] *= 0.95;
+
+        // hand interaction
+        const dx = p[i3] - handPos.x;
+        const dy = p[i3+1] - handPos.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist < 12) {
+            v[i3] += (dx/dist) * (12 - dist) * 0.1;
+            v[i3+1] += (dy/dist) * (12 - dist) * 0.1;
+        }
+
+        // return to square
+        p[i3] += (t[i3] - p[i3]) * 0.03;
+        p[i3+1] += (t[i3+1] - p[i3+1]) * 0.03;
+        p[i3+2] += (t[i3+2] - p[i3+2]) * 0.03;
+    }
+
+    geo.attributes.position.needsUpdate = true;
+    composer.render();
+}
+
+animate();
+
+// RESIZE
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
