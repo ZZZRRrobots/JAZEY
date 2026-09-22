@@ -17,7 +17,7 @@ let lastFrame = performance.now();
 let activeSceneIndex = -1;
 
 const narration = [];
-const music = new Audio("audio/music.mp3");
+const music = new Audio("audio/music.mp4");
 
 music.loop = true;
 music.volume = 0.12;
@@ -29,7 +29,7 @@ music.volume = 0.12;
 
 for (let i = 1; i <= 9; i++) {
 
-    const audio = new Audio(`audio/${i}.mp3`);
+    const audio = new Audio(`audio/${i}.mp4`);
 
     audio.preload = "auto";
     audio.volume = 1;
